@@ -8,6 +8,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="NEURAL BRAIN">
 <title>NEURAL BRAIN</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -1376,21 +1378,11 @@ function weekActivity(notes){
 }
 
 /* ============================================================
-   PWA: manifest + service worker (inline)
+   PWA: manifest + service worker (externos)
    ============================================================ */
 function installPWA(){
-  const icon="data:image/svg+xml,"+encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512'><rect width='512' height='512' rx='110' fill='#0A0A0A'/><text x='50%' y='54%' font-size='300' text-anchor='middle' dominant-baseline='middle'>🧠</text></svg>`);
-  const manifest={ name:'NEURAL BRAIN', short_name:'NEURAL BRAIN', description:'Tu segundo cerebro con IA',
-    start_url:'.', display:'standalone', background_color:'#0A0A0A', theme_color:'#0A0A0A', orientation:'portrait',
-    icons:[{src:icon,sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'},{src:icon,sizes:'192x192',type:'image/svg+xml'}] };
-  const mb=new Blob([JSON.stringify(manifest)],{type:'application/json'});
-  const link=document.createElement('link'); link.rel='manifest'; link.href=URL.createObjectURL(mb); document.head.appendChild(link);
-  const apple=document.createElement('link'); apple.rel='apple-touch-icon'; apple.href=icon; document.head.appendChild(apple);
-  // Service worker (offline cache of this document). Works when served over http(s).
   if('serviceWorker' in navigator && location.protocol.startsWith('http')){
-    const sw=`const C='neural-brain-v1';self.addEventListener('install',e=>{self.skipWaiting()});self.addEventListener('activate',e=>{e.waitUntil(clients.claim())});self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(caches.open(C).then(async c=>{const r=await c.match(e.request);const f=fetch(e.request).then(res=>{if(res&&res.status===200)c.put(e.request,res.clone());return res}).catch(()=>r);return r||f}))});`;
-    const swUrl=URL.createObjectURL(new Blob([sw],{type:'text/javascript'}));
-    navigator.serviceWorker.register(swUrl).catch(()=>{});
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
   }
 }
 
