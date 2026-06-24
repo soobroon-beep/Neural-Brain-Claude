@@ -331,8 +331,16 @@ const EMOJIS  = ['🎨','📈','🤖','🧠','💡','📚','🎯','🔥','⚡','
 
 /* ---------- Persistent config ---------- */
 let CFG = JSON.parse(localStorage.getItem('nb_config')||'{}');
-CFG.firebase = CFG.firebase||{};
-function saveCfg(){ localStorage.setItem('nb_config', JSON.stringify(CFG)); }
+// Firebase preconfigurado — no requiere setup manual
+CFG.firebase = {
+  apiKey:            "AIzaSyA2DWrIlysRhhzQoBwDWGNmon7uCD6yFMM",
+  authDomain:        "neural-brain-148a4.firebaseapp.com",
+  projectId:         "neural-brain-148a4",
+  storageBucket:     "neural-brain-148a4.firebasestorage.app",
+  messagingSenderId: "150945061630",
+  appId:             "1:150945061630:web:75babe8d8b88a1b48023af"
+};
+function saveCfg(){ localStorage.setItem('nb_config', JSON.stringify({...CFG, firebase: undefined})); }
 
 /* ---------- App state ---------- */
 let state = {
@@ -375,9 +383,7 @@ function now(){ return Date.now(); }
 /* ============================================================
    FIREBASE (optional, loaded on demand)
    ============================================================ */
-function fbConfigured(){
-  const f=CFG.firebase; return f && f.apiKey && f.projectId && f.appId;
-}
+function fbConfigured(){ return true; }
 function loadScript(src){
   return new Promise((res,rej)=>{
     if([...document.scripts].some(s=>s.src===src)) return res();
@@ -410,10 +416,10 @@ async function initFirebase(){
 function updateCloudBadge(on){
   const el=document.getElementById('cloudBadge');
   el.className='cloud-badge'+(on?' on':'');
-  el.textContent= on? '🟢 Sync' : (fbConfigured()?'🟡 Sin sesión':'⚪ Local');
+  el.textContent= on? '🟢 Sync' : '🟡 Sin sesión';
 }
 async function googleSignIn(){
-  if(!state.fb){ toast('Configura Firebase primero','err'); return; }
+  if(!state.fb){ toast('Cargando Firebase...',''); await initFirebase(); }
   try{ await firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()); toast('Sesión iniciada ✓'); }
   catch(e){ toast('Error: '+e.message,'err'); }
 }
@@ -714,18 +720,17 @@ function viewStats(b){
 
 /* ---------- SETTINGS VIEW ---------- */
 function viewSettings(){
-  const f=CFG.firebase;
   return `<div class="screen">
     <div class="section-title">Cuenta</div>
     <div class="card">
       ${state.user?`
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
           <div class="avatar" style="width:46px;height:46px">${state.user.photo?`<img src="${state.user.photo}">`:esc((CFG.username||state.user.name||'U')[0])}</div>
-          <div><h3 style="margin:0">${esc(CFG.username||state.user.name)}</h3><p style="margin:0;color:var(--muted);font-size:12px">🟢 Sincronizado</p></div>
+          <div><h3 style="margin:0">${esc(CFG.username||state.user.name)}</h3><p style="margin:0;color:var(--muted);font-size:12px">🟢 Sincronizado con Firebase</p></div>
         </div>
         <button class="btn btn-danger" style="width:100%" onclick="googleSignOut()">Cerrar sesión</button>
       `:`
-        <p>Inicia sesión con Google para sincronizar tus cerebros en la nube (requiere config de Firebase abajo).</p>
+        <p style="margin-bottom:14px">Inicia sesión con Google para sincronizar tus cerebros en todos tus dispositivos.</p>
         <button class="signin-google" onclick="googleSignIn()"><span style="font-size:18px">🔑</span> Continuar con Google</button>
       `}
     </div>
@@ -739,15 +744,7 @@ function viewSettings(){
       <label>Anthropic API Key</label>
       <input id="setAnthropic" type="password" value="${esc(CFG.anthropicKey||'')}" placeholder="sk-ant-..." onchange="CFG.anthropicKey=this.value.trim();saveCfg();toast('API Key guardada ✓')">
     </div>
-    <p style="font-size:11px;color:var(--muted);margin:-6px 2px 16px">Modelo: <b style="color:var(--accent)">${AI_MODEL}</b>. La key se guarda solo en este dispositivo (localStorage).</p>
-
-    <div class="section-title">Firebase (sync en la nube)</div>
-    <div class="card">
-      <p>Pega los datos de tu proyecto Firebase. Se guardan localmente.</p>
-      ${['apiKey','authDomain','projectId','storageBucket','messagingSenderId','appId'].map(k=>`
-        <div class="field"><label>${k}</label><input id="fb_${k}" value="${esc(f[k]||'')}" placeholder="${k}"></div>`).join('')}
-      <button class="btn btn-primary" style="width:100%" onclick="saveFirebase()">💾 Guardar y conectar Firebase</button>
-    </div>
+    <p style="font-size:11px;color:var(--muted);margin:-6px 2px 16px">Modelo: <b style="color:var(--accent)">${AI_MODEL}</b>. La key se guarda solo en este dispositivo.</p>
 
     <div class="section-title">Datos</div>
     <div class="card">
@@ -1065,18 +1062,6 @@ function deleteBrain(id){
     if(state.currentBrainId===id) state.currentBrainId=state.brains[0].id;
     toast('Cerebro eliminado'); render();
   });
-}
-
-/* ============================================================
-   FIREBASE SETTINGS SAVE
-   ============================================================ */
-async function saveFirebase(){
-  ['apiKey','authDomain','projectId','storageBucket','messagingSenderId','appId'].forEach(k=>{
-    CFG.firebase[k]=document.getElementById('fb_'+k).value.trim();
-  });
-  saveCfg();
-  if(fbConfigured()){ toast('Conectando con Firebase...'); await initFirebase(); updateCloudBadge(!!state.user); }
-  else toast('Completa al menos apiKey, projectId y appId','err');
 }
 
 /* ============================================================
