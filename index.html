@@ -65,7 +65,8 @@ main{flex:1;min-width:0;padding:calc(18px + var(--safe-t)) 16px calc(120px + var
 
 @media(min-width:980px){
   #dock{display:none}
-  #side{display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100dvh;width:268px;flex:0 0 268px;padding:22px 14px;border-right:1px solid var(--line);background:rgba(8,11,18,.5);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+  #side:empty{display:none}
+  #side:not(:empty){display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100dvh;width:268px;flex:0 0 268px;padding:22px 14px;border-right:1px solid var(--line);background:rgba(8,11,18,.5);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
   main{padding:34px 40px 60px}
   .side-brand{display:flex;align-items:center;gap:12px;padding:4px 10px 18px}
   .side-brand b{font-size:15px;letter-spacing:.3px}.side-brand small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
@@ -712,7 +713,12 @@ document.addEventListener('click', async e => {
   if (d.color) { saveBrain(S.cur, {color: d.color}); return; }
   const note = t.closest('[data-note]'), nid = note && note.dataset.note, b = brain();
   switch (d.act) {
-    case 'login': try { await firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()); } catch (er) { if (er && er.code !== 'auth/popup-closed-by-user') { try { await firebase.auth().signInWithRedirect(new firebase.auth.GoogleAuthProvider()); } catch { toast('No se pudo iniciar sesión'); } } } break;
+    case 'login': { // solo ventana emergente: la redirección pierde la sesión cuando la app vive en github.io y Firebase en otro dominio
+      if (window.self !== window.top) { toast('Abre Neural Brain en una pestaña nueva para iniciar sesión'); break; }
+      const pr = new firebase.auth.GoogleAuthProvider(); pr.setCustomParameters({prompt: 'select_account'});
+      try { await firebase.auth().signInWithPopup(pr); }
+      catch (er) { const c = er && er.code; toast(c === 'auth/popup-blocked' ? 'El navegador bloqueó la ventana: permite ventanas emergentes para este sitio' : c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request' ? 'Inicio de sesión cancelado' : c === 'auth/unauthorized-domain' ? 'Este dominio no está autorizado en Firebase' : 'No se pudo iniciar sesión (' + (c || 'error') + ')'); }
+      break; }
     case 'logout': if (confirm('¿Cerrar sesión en Neural Brain?')) { await firebase.auth().signOut(); } break;
     case 'teach': if (!S.user || !S.brains.length) return; teachSheet(); break;
     case 'closeSheet': closeSheet(); break;
