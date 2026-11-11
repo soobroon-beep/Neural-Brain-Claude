@@ -3,7 +3,8 @@
    Para cada cerebro con recuerdos o enseñanzas nuevas desde su último aprendizaje, le pide a la IA gratuita
    que actualice «Lo que sé de ti» y lo guarda en el cerebro. Los cerebros conectados a VORTEX le pasan ese
    aprendizaje a la IA de VORTEX en la siguiente sincronización del conector.
-   Sin FIREBASE_SERVICE_ACCOUNT no hace nada. Nunca imprime datos de usuarios (el repo es público). */
+   Corre desde el repo de VORTEX con su cuenta de servicio (tiene permiso en neural-brain-148a4): no hace falta otra llave.
+   Sin FIREBASE_SERVICE_ACCOUNT no hace nada. Nunca imprime datos de usuarios (los repos son públicos). */
 'use strict';
 const L = require('../brain-learn.js');
 const DAYS = 75;
@@ -12,7 +13,7 @@ async function run() {
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
   if (!raw) { console.log('Sin FIREBASE_SERVICE_ACCOUNT: nada que hacer.'); return; }
   const admin = require('firebase-admin');
-  admin.initializeApp({ credential: admin.credential.cert(JSON.parse(raw)) });
+  admin.initializeApp({ credential: admin.credential.cert(JSON.parse(raw)), projectId: process.env.NB_PROJECT || 'neural-brain-148a4' });
   const db = admin.firestore(), force = process.env.FORCE === '1', now = Date.now();
   const users = await db.collection('users').listDocuments(); let done = 0, skipped = 0, failed = 0;
   for (const u of users) {

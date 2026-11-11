@@ -23,23 +23,21 @@ VORTEX users/{uid}/data/brain ◄────────────┘  el con
 - Encuentra tu cuenta en cada app por el **mismo correo de Google** con el que entras a Neural Brain.
 - En Neural Brain → Ajustes puedes pausar Nova Hub o VORTEX; en cada cerebro eliges de qué app aprende.
 
-## Lo único que hay que hacer una vez: la llave del cerebro
+## Permisos (ya hechos)
 
-1. Firebase Console → proyecto **neural-brain-148a4** → ⚙ Configuración del proyecto → **Cuentas de servicio** → **Generar nueva clave privada** (descarga un `.json`).
-2. Copia TODO el contenido del `.json` y pégalo como secreto de GitHub (Settings → Secrets and variables → Actions → New repository secret) en:
-   - este repo (**Neural-Brain-Claude**) con el nombre `FIREBASE_SERVICE_ACCOUNT`
-   - **Nova-HUB** con el nombre `NEURAL_BRAIN_SERVICE_ACCOUNT`
-   - **Vortex-By-Nova-Nexus** con el nombre `NEURAL_BRAIN_SERVICE_ACCOUNT`
-3. En este repo: Actions → «Publicar reglas de Firestore» → Run workflow (publica `firestore.rules`).
-4. En Nova-HUB y en VORTEX: Actions → «Cerebro · conector…» → Run workflow (la primera vez trae todo lo que ya tienes).
+No hay llaves nuevas. Las cuentas de servicio que Nova Hub y VORTEX ya usan en GitHub (`firebase-adminsdk-fbsvc@nova-hub-2a8a0…` y `firebase-adminsdk-fbsvc@criptochart-bd774…`) tienen el rol **Usuario de Cloud Datastore** en el proyecto `neural-brain-148a4` (IAM). Con eso:
 
-Sin la llave, los trabajos terminan sin hacer nada y las apps siguen igual.
+- El conector de cada app escribe tus recuerdos en el cerebro.
+- El aprendizaje nocturno corre desde el repo de VORTEX (`.github/workflows/brain-learn.yml`), que descarga este repo y ejecuta `scripts/learn.js`.
+- Las reglas de `firestore.rules` se publican a mano en Firebase Console → Firestore → Reglas.
+
+Para desconectar todo: quita esas dos cuentas en IAM de `neural-brain-148a4`, o pausa cada app en Neural Brain → Ajustes.
 
 ## Archivos
 
 - `index.html` — la app nueva (liquid glass). `legacy.html` — la versión anterior.
 - `brain-learn.js` — cómo aprende y responde un cerebro (lo usan la app y el servidor).
-- `scripts/learn.js` + `.github/workflows/learn.yml` — aprendizaje nocturno (3:20 a. m.).
+- `scripts/learn.js` — aprendizaje nocturno (3:20 a. m.); lo ejecuta el workflow `brain-learn.yml` del repo de VORTEX.
 - `firestore.rules` — cada quien solo ve lo suyo; los recuerdos solo los escribe el conector.
 - El conector vive en cada app: `scripts/brain-sync.js` + `.github/workflows/brain-sync.yml`.
 

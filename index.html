@@ -395,6 +395,7 @@ const U = () => db.collection('users').doc(S.user.uid);
 function detach() { unsubs.forEach(f => { try { f(); } catch {} }); unsubs = []; Object.values(noteUnsubs).forEach(f => { try { f(); } catch {} }); noteUnsubs = {}; S.brains = []; S.notes = {}; S.events = []; S.chats = {}; S.chatLoaded = {}; }
 function attach() {
   let seeded = false;
+  U().set({email: S.user.email || '', name: S.user.displayName || '', seenAt: Date.now()}, {merge: true}).catch(() => {}); // el conector te encuentra en Nova Hub y VORTEX por este correo
   unsubs.push(U().collection('brains').onSnapshot(async snap => {
     if (snap.empty) { if (!seeded && !snap.metadata.fromCache) { seeded = true; await seedBrains(); } return; }
     S.brains = snap.docs.map(d => Object.assign({id: d.id, sources: [], toVortex: false}, d.data())).sort((a, b) => (a.order ?? 99) - (b.order ?? 99) || String(a.name).localeCompare(b.name));
@@ -406,7 +407,6 @@ function attach() {
   listenEvents();
   unsubs.push(U().collection('settings').doc('connections').onSnapshot(s => { S.conn = Object.assign({novahub: true, vortex: true}, s.data() || {}); softRender(); }, () => {}));
   unsubs.push(U().collection('settings').doc('status').onSnapshot(s => { S.status = s.data() || {}; softRender(); }, () => {}));
-  // el conector busca tu cuenta de Nova Hub y VORTEX por el correo de Google: con abrir Neural Brain basta
 }
 let evUnsub = null;
 function listenEvents() {
