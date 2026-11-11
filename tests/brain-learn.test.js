@@ -9,5 +9,13 @@ assert(/SHORT ETHUSDT/.test(sys), 'trae el recuerdo relacionado aunque sea viejo
 (async () => {
   let calls = 0; const fake = async (url) => { calls++; if (calls < 2) return {ok: false, status: 429}; return {ok: true, json: async () => ({choices: [{message: {content: 'Hola, ya aprendí.'}}]})}; };
   const r = await L.chat([{role: 'user', content: 'x'}], {fetch: fake}); assert.strictEqual(r.text, 'Hola, ya aprendí.'); assert.strictEqual(calls, 2);
+  // sin créditos en un servidor: se salta al siguiente; Pollinations sin créditos no se insiste con otro modelo
+  const seen = []; const fake2 = async (url, init) => { seen.push(url.split('/')[2] + ':' + JSON.parse(init.body).model);
+    if (url.includes('nova-hub')) return {ok: false, status: 503};
+    if (url.includes('vortex')) return {ok: true, json: async () => ({choices: [{message: {content: 'You do not have enough credits, top up'}}]})};
+    if (url.includes('gen.')) return {ok: false, status: 402};
+    return {ok: true, json: async () => ({choices: [{message: {content: '<think>mm</think>Listo, aprendido.'}}]})}; };
+  const r2 = await L.chat([{role: 'user', content: 'x'}], {fetch: fake2}); assert.strictEqual(r2.text, 'Listo, aprendido.');
+  assert.deepStrictEqual(seen, ['nova-hub-push.soobroon.workers.dev:openai', 'vortex-push.soobroon.workers.dev:openai', 'gen.pollinations.ai:openai', 'text.pollinations.ai:openai']);
   console.log('brain-learn: OK');
 })();

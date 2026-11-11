@@ -5,7 +5,9 @@
   'use strict';
   const GEN_URL = 'https://gen.pollinations.ai/v1/chat/completions';
   const POLLEN_KEY = 'sk_1XvEYtOmiFixsgMve0FAqQz5ghhy7FFT'; // clave gratuita de la app (la misma de VORTEX): nadie escribe claves
-  const VX = 'https://vortex-push.soobroon.workers.dev/ai'; // respaldo: tu servidor VORTEX reenvía a Pollinations
+  const NH = 'https://nova-hub-push.soobroon.workers.dev/ai'; // 1) servidor de NOVA HUB: Groq / Cloudflare Workers AI (modelos abiertos, gratis)
+  const VX = 'https://vortex-push.soobroon.workers.dev/ai'; // 2) servidor de VORTEX: su propia cadena Groq → Workers AI → Pollinations
+  const APP_ORIGIN = 'https://soobroon-beep.github.io'; // origen permitido (cuando se llama desde el servidor nocturno)
   const FREE_URL = 'https://text.pollinations.ai/openai';
   const APPS = { novahub: 'Nova Hub', vortex: 'VORTEX', neural: 'Neural Brain' };
   const KINDS = { nota: 'Nota', regla: 'Regla', estrategia: 'Estrategia', trader: 'Trader', leccion: 'Lección' };
@@ -89,17 +91,30 @@ RECUERDOS RELACIONADOS:\n${relevant(events, q, 60).map(e => eventLine(e, 200)).j
     return [{ role: 'system', content: 'Responde en español. Convierte el texto (transcripción, apuntes o explicación de una estrategia de trading o de un método) en una nota CLARA para un cerebro personal: título en una línea, luego viñetas con las reglas concretas (cuándo entrar, cuándo salir, stop, objetivo, temporalidad, indicadores, gestión de riesgo, errores a evitar). No inventes nada que no esté en el texto. Máximo ~220 palabras.' }, { role: 'user', content: (author ? 'Autor / trader: ' + author + '\n\n' : '') + clip(text, 14000) }];
   }
 
-  /* Llamada a la IA gratuita (Pollinations). Prueba la API con clave, luego tu servidor VORTEX y al final la API libre. */
+  /* Llamada a la IA gratuita, con varias IAs de respaldo (la misma idea que VORTEX):
+     1) tu servidor NOVA HUB (Groq / Cloudflare Workers AI: gpt-oss, Llama 3.3, Llama 4, Mistral, Gemma…)
+     2) el servidor de VORTEX, 3) Pollinations con la clave de la app, 4) Pollinations sin clave.
+     Un servicio que contesta «sin créditos» o con un filtro en vez de la respuesta se salta en el acto. */
+  const noCredit = t => String(t || '').length < 800 && /enough credits|top up|paid pollen|insufficient (balance|credits)|requires? (a )?paid|free limit reached|queue full/i.test(t);
+  const looksBad = t => /^\s*(safety|categories)\s*:/i.test(t) || /^\s*(safe|unsafe)\s*$/i.test(t);
+  const cleanT = t => String(t || '').replace(/<think>[\s\S]*?<\/think>/g, '').replace(/^[\s\S]*?<\/think>/, '').trim();
   async function chat(messages, o) {
-    o = o || {}; const f = o.fetch || root.fetch; let last;
-    const routes = [[GEN_URL, POLLEN_KEY], [VX, ''], [FREE_URL, '']];
-    for (const model of o.models || ['openai', 'mistral']) for (const [url, key] of routes) {
-      const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, t = ctl ? setTimeout(() => ctl.abort(), o.timeout || 90000) : 0;
+    o = o || {}; const f = o.fetch || root.fetch, server = typeof document === 'undefined', end = Date.now() + (o.budget || 180000); let last, genDead = false;
+    const routes = [[NH, '', 'openai', 'servidor NOVA HUB'], [VX, '', 'openai', 'servidor VORTEX']];
+    for (const model of o.models || ['openai', 'mistral']) routes.push([GEN_URL, POLLEN_KEY, model, model]);
+    routes.push([FREE_URL, '', 'openai', 'pollinations']);
+    for (const [url, key, model, label] of routes) {
+      if (Date.now() > end - 4000) break;
+      if (url === GEN_URL && genDead) continue;
+      const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, t = ctl ? setTimeout(() => ctl.abort(), Math.min(o.timeout || 90000, end - Date.now())) : 0;
       try {
-        const r = await f(url, { method: 'POST', signal: ctl && ctl.signal, headers: Object.assign({ 'content-type': 'application/json' }, key ? { authorization: 'Bearer ' + key } : {}), body: JSON.stringify({ model, messages, max_tokens: o.maxTokens || 1400, temperature: o.temperature == null ? .5 : o.temperature }) });
-        if (!r.ok) { last = new Error('La IA respondió ' + r.status); continue; }
-        const j = await r.json(), text = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
-        if (text && String(text).trim().length > 5) return { text: String(text).trim(), model };
+        const headers = Object.assign({ 'content-type': 'application/json' }, key ? { authorization: 'Bearer ' + key } : {}, server && !key ? { origin: APP_ORIGIN } : {});
+        const r = await f(url, { method: 'POST', signal: ctl && ctl.signal, headers, body: JSON.stringify({ model, messages, max_tokens: o.maxTokens || 1400, temperature: o.temperature == null ? .5 : o.temperature }) });
+        if (!r.ok) { last = new Error('La IA respondió ' + r.status); if (url === GEN_URL && (r.status === 402 || r.status === 401 || r.status === 403)) genDead = true; continue; }
+        const j = await r.json(), text = cleanT(j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content);
+        if (noCredit(text)) { last = new Error('Sin créditos en ' + label); if (url === GEN_URL) genDead = true; continue; }
+        if (looksBad(text)) { last = new Error('Respuesta de filtro'); continue; }
+        if (text && text.length > 5) return { text, model: (j && j.model) || label };
         last = new Error('Respuesta vacía');
       } catch (e) { last = e; } finally { clearTimeout(t); }
     }
