@@ -1,5 +1,5 @@
 /* Neural Brain · service worker: la app abre sin internet, pero siempre busca primero la versión nueva. */
-const CACHE = 'neural-brain-v7';
+const CACHE = 'neural-brain-v8';
 const ASSETS = ['./', './index.html', './brain-learn.js', './graphs.js', './neura.js', './manifest.json', './icon-192.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).catch(() => {})); self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });

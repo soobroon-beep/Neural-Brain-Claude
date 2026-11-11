@@ -237,10 +237,10 @@ textarea.inp{min-height:110px}
 @media(max-width:860px){.ggrid{grid-template-columns:1fr 1fr 1fr}.glevel{grid-column:1/-1}.g2{grid-template-columns:1fr}.netbox{height:340px}.gtile{padding:12px}.gtile b{font-size:22px}}
 @media(max-width:420px){.sparkw{display:none}}
 .nrset{width:54px;flex:0 0 54px;display:grid;place-items:center}
-.brandimg{width:40px;height:40px;border-radius:12px;flex:0 0 40px;box-shadow:0 6px 18px -6px rgba(120,90,255,.6)}
-.appicons{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px;padding:14px}
+.brandimg{width:44px;height:44px;border-radius:0;flex:0 0 40px;box-shadow:0 6px 18px -6px rgba(120,90,255,.6)}
+.appicons{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:10px;padding:14px}
 .aic{display:flex;flex-direction:column;align-items:center;gap:7px;padding:10px 6px;border-radius:18px;border:1px solid transparent;transition:transform .35s var(--spring),background .3s,border-color .3s}
-.aic img{width:62px;height:62px;border-radius:15px;transition:transform .45s var(--spring);filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))}
+.aic img{width:72px;height:72px;border-radius:0;transition:transform .45s var(--spring);filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))}
 .aic span{font-size:11px;color:var(--muted);text-align:center;line-height:1.25}
 .aic:hover{background:rgba(255,255,255,.04)}.aic:hover img{transform:translateY(-3px) scale(1.04)}
 .aic.on{background:rgba(139,107,255,.12);border-color:rgba(139,107,255,.55)}.aic.on span{color:var(--text);font-weight:600}
@@ -515,7 +515,7 @@ function go(v, opts) { S.view = v; if (opts && opts.brain) { S.cur = opts.brain;
 function side() {
   const s = $('#side'); if (innerWidth < 980) { s.innerHTML = ''; return; }
   const nav = (v, i, t) => `<button class="side-nav ${S.view === v ? 'on' : ''}" data-go="${v}">${ic(i)}${t}</button>`;
-  s.innerHTML = `<div class="side-brand"><img class="brandimg" src="${iconSrc(curIcon(), 96)}" alt="" width="40" height="40"><div><b>Neural Brain</b><small>Tu segundo cerebro</small></div></div>
+  s.innerHTML = `<div class="side-brand"><img class="brandimg" src="${iconSrc(curIcon(), 96)}" alt="" width="44" height="44"><div><b>Neural Brain</b><small>Tu segundo cerebro</small></div></div>
     ${nav('home', 'brain', 'Cerebros')}${nav('memories', 'clock', 'Recuerdos')}${nav('ask', 'chat', 'Preguntar')}${nav('settings', 'gear', 'Ajustes')}
     <div class="side-sep">Mis cerebros</div>
     ${S.brains.map(b => `<button class="side-nav side-brain ${S.view === 'brain' && S.cur === b.id ? 'on' : ''}" style="--c:${b.color}" data-brain="${b.id}"><span class="dot"></span>${esc(b.name)}</button>`).join('')}
