@@ -9,9 +9,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Neural Brain">
 <title>Neural Brain</title>
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="icon" href="icon-96.png">
+<link rel="manifest" id="lnkManifest" href="manifest.json">
+<link rel="apple-touch-icon" id="lnkTouch" href="apple-touch-icon.png">
+<link rel="icon" id="lnkFav" href="icon-96.png">
+<script>/* icono elegido (Ajustes → Icono de la app): se aplica antes de pintar */
+try{var _i=+localStorage.getItem('nb3_icon')||1;if(_i>1&&_i<=16){document.getElementById('lnkManifest').href='manifests/icon-'+_i+'.json';document.getElementById('lnkTouch').href='icons/app/i'+_i+'-180.png';document.getElementById('lnkFav').href='icons/app/i'+_i+'-96.png';}}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -201,6 +203,47 @@ textarea.inp{min-height:110px}
 .btn[disabled]{opacity:.5;pointer-events:none}
 .btn.block{width:100%}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+/* ── Evolución ── */
+.ggrid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px}
+.glevel{display:flex;align-items:center;gap:16px;padding:16px 18px}
+.lvwrap{position:relative;width:104px;height:104px;flex:0 0 104px}.lvwrap svg{position:absolute;inset:0}
+.lvnum{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}.lvnum b{font-size:30px;letter-spacing:-1px;line-height:1}.lvnum small{color:var(--muted);font-size:11px;margin-top:2px}
+.lvtx b{display:block;font-size:15px}.lvtx small{display:block;color:var(--muted);font-size:12px;line-height:1.5;margin-top:4px}
+.lvbar{height:6px;border-radius:6px;background:rgba(255,255,255,.07);margin-top:10px;overflow:hidden}.lvbar i{display:block;height:100%;border-radius:6px;animation:grow 1.2s var(--ease) both}
+@keyframes grow{from{width:0!important}}
+.gtile{padding:14px 16px;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.gtile b{font-size:26px;letter-spacing:-.8px;font-variant-numeric:tabular-nums}.gtile small{color:var(--muted);font-size:12px}
+.gti{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:rgba(255,255,255,.05);color:var(--c,var(--accent));margin-bottom:6px}.gti svg{width:16px;height:16px}
+.netcard{padding:16px 16px 12px;margin-bottom:12px;overflow:hidden}
+.nethead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
+.nethead b{font-size:15px;display:block}.nethead small{color:var(--muted);font-size:12px;display:block;margin-top:3px;line-height:1.45}
+.netbox{position:relative;height:420px;margin:0 -16px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:radial-gradient(circle at 50% 50%,rgba(109,141,255,.05),transparent 70%)}
+.netbox canvas{width:100%;height:100%;display:block;touch-action:manipulation}
+.nettip{position:absolute;z-index:3;pointer-events:none;max-width:250px;padding:9px 12px;border-radius:13px;background:rgba(12,16,26,.88);-webkit-backdrop-filter:var(--blur-s);backdrop-filter:var(--blur-s);border:1px solid var(--line-2);font-size:12px;animation:viewIn .25s var(--ease)}
+.nettip b{display:block;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.nettip span{color:var(--muted);font-size:11.5px}
+.netleg{margin-top:12px}.dotc{width:8px;height:8px;border-radius:50%;flex:0 0 8px}
+.chip.live{color:#7fe3c4}.chip.live i{width:6px;height:6px;border-radius:50%;background:#2bd4a4;animation:pulse 2s infinite}
+.g2{display:grid;grid-template-columns:1.4fr 1fr;gap:12px}
+.gcard{padding:16px}
+.gsvg{width:100%;height:170px;display:block;overflow:visible}.gtx{fill:var(--dim);font-size:11px;font-family:Inter,sans-serif}
+.gline{stroke-dasharray:2000;stroke-dashoffset:2000;animation:draw 1.8s var(--ease) forwards}@keyframes draw{to{stroke-dashoffset:0}}
+.gdot{animation:breathe 2.4s ease-in-out infinite;transform-origin:center;transform-box:fill-box}
+.gleg{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);margin-top:8px}.gleg i{display:inline-block;width:14px;height:3px;border-radius:3px;margin-right:6px;vertical-align:middle}.gleg i.dash{background:repeating-linear-gradient(90deg,#f2c46d 0 4px,transparent 4px 7px)}
+.diet{display:flex;flex-direction:column;gap:11px;margin-top:6px}
+.drow{display:grid;grid-template-columns:118px 1fr 34px;align-items:center;gap:10px;font-size:12.5px}.drow span{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.drow b{text-align:right;font-variant-numeric:tabular-nums;font-size:13px}
+.dbar{height:9px;border-radius:9px;background:rgba(255,255,255,.05);overflow:hidden}.dbar i{display:block;height:100%;border-radius:9px;animation:grow 1.1s var(--ease) both}
+.sparkw{margin-left:auto;align-self:flex-end;order:9}.spark{width:90px;height:26px;display:block;opacity:.9}
+@media(max-width:860px){.ggrid{grid-template-columns:1fr 1fr 1fr}.glevel{grid-column:1/-1}.g2{grid-template-columns:1fr}.netbox{height:340px}.gtile{padding:12px}.gtile b{font-size:22px}}
+@media(max-width:420px){.sparkw{display:none}}
+.nrset{width:54px;flex:0 0 54px;display:grid;place-items:center}
+.brandimg{width:40px;height:40px;border-radius:12px;flex:0 0 40px;box-shadow:0 6px 18px -6px rgba(120,90,255,.6)}
+.appicons{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px;padding:14px}
+.aic{display:flex;flex-direction:column;align-items:center;gap:7px;padding:10px 6px;border-radius:18px;border:1px solid transparent;transition:transform .35s var(--spring),background .3s,border-color .3s}
+.aic img{width:62px;height:62px;border-radius:15px;transition:transform .45s var(--spring);filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))}
+.aic span{font-size:11px;color:var(--muted);text-align:center;line-height:1.25}
+.aic:hover{background:rgba(255,255,255,.04)}.aic:hover img{transform:translateY(-3px) scale(1.04)}
+.aic.on{background:rgba(139,107,255,.12);border-color:rgba(139,107,255,.55)}.aic.on span{color:var(--text);font-weight:600}
+.aic:active{transform:scale(.93)}
 .empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;line-height:1.6}
 .empty svg{width:40px;height:40px;opacity:.5;margin-bottom:10px}
 .empty b{display:block;color:var(--text);font-size:16px;margin-bottom:4px}
@@ -294,6 +337,7 @@ textarea.inp{min-height:110px}
 <div id="toast" role="status"></div>
 
 <script src="brain-learn.js"></script>
+<script src="graphs.js"></script>
 <script>
 'use strict';
 /* ═══════════ NEURAL BRAIN · tu segundo cerebro ═══════════
@@ -331,6 +375,7 @@ const P = {
   link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', chat:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',
   gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+  net:'<circle cx="12" cy="12" r="2.6"/><circle cx="4.5" cy="6" r="1.8"/><circle cx="19.5" cy="6" r="1.8"/><circle cx="6" cy="19" r="1.8"/><circle cx="18" cy="18.5" r="1.8"/><path d="M6 7l4 3.4M18 7l-4 3.4M7.3 17.6l3-3.4M16.7 17.2l-2.9-3"/>',
   learn:'<path d="M22 9 12 4 2 9l10 5 10-5z"/><path d="M6 11v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/>', down:'<path d="M12 4v12M6 10l6 6 6-6M4 20h16"/>',
   logout:'<path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/>', info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>', check:'<path d="m5 12 5 5 9-10"/>'
 };
@@ -347,9 +392,18 @@ const DEFAULT_BRAINS = [
   {id: 'ia', name: 'IA y tecnología', icon: 'spark', color: '#2bd4a4', desc: 'Lo que aprendo de IA, apps y herramientas.', sources: [], toVortex: false, order: 3}
 ];
 
+const APP_ICONS = ['Clásico', 'Neón', 'Cristal', 'Galaxia', 'Línea', 'Órbita', 'Aurora', 'Noche', 'Sinapsis', 'Violeta', 'Anillo', 'Constelación', 'Perla', 'Atardecer', 'Prisma', 'Medianoche'];
+const curIcon = () => { const n = +localStorage.getItem('nb3_icon') || 1; return n >= 1 && n <= 16 ? n : 1; };
+const iconSrc = (n, s) => `icons/app/i${n}-${s || 192}.png`;
+function applyIcon(n, save) {
+  n = n >= 1 && n <= 16 ? n : 1; try { localStorage.setItem('nb3_icon', String(n)); } catch {}
+  $('#lnkManifest').href = n === 1 ? 'manifest.json' : `manifests/icon-${n}.json`; $('#lnkTouch').href = n === 1 ? 'apple-touch-icon.png' : iconSrc(n, 180); $('#lnkFav').href = n === 1 ? 'icon-96.png' : iconSrc(n, 96);
+  if (save && S.user) U().set({appIcon: n}, {merge: true}).catch(() => {});
+}
+
 /* ── Estado ── */
 const S = {user: null, ready: false, brains: [], notes: {}, events: [], evLimit: 600, conn: {novahub: true, vortex: true}, status: {}, chats: {}, chatLoaded: {},
-  view: 'home', cur: null, tab: 'teach', f: {kind: 'all', q: '', app: 'all'}, busy: false, open: new Set()};
+  view: 'home', cur: null, tab: 'graph', f: {kind: 'all', q: '', app: 'all'}, busy: false, open: new Set()};
 let db = null, unsubs = [], noteUnsubs = {};
 
 /* ── Utilidades ── */
@@ -389,14 +443,15 @@ async function boot() {
     await Promise.all([loadScript(B + 'firebase-auth-compat.js'), loadScript(B + 'firebase-firestore-compat.js')]);
     firebase.initializeApp(FB_CFG); db = firebase.firestore();
     try { await db.enablePersistence({synchronizeTabs: true}); } catch {}
-    firebase.auth().onAuthStateChanged(u => { S.user = u; S.ready = true; detach(); if (u) attach(); render(); });
+    firebase.auth().onAuthStateChanged(u => { S.user = u; S.ready = true; detach(); if (u) attach(); render(); dispatchEvent(new Event('nb-auth')); });
   } catch (e) { S.ready = true; $('#main').innerHTML = `<div class="empty"><b>No pude conectar</b>Revisa tu internet y vuelve a abrir la app.<br><small>${esc(e.message)}</small></div>`; }
 }
 const U = () => db.collection('users').doc(S.user.uid);
 function detach() { unsubs.forEach(f => { try { f(); } catch {} }); unsubs = []; Object.values(noteUnsubs).forEach(f => { try { f(); } catch {} }); noteUnsubs = {}; S.brains = []; S.notes = {}; S.events = []; S.chats = {}; S.chatLoaded = {}; }
 function attach() {
   let seeded = false;
-  U().set({email: S.user.email || '', name: S.user.displayName || '', seenAt: Date.now()}, {merge: true}).catch(() => {}); // el conector te encuentra en Nova Hub y VORTEX por este correo
+  U().set({email: S.user.email || '', name: S.user.displayName || '', seenAt: Date.now()}, {merge: true}).catch(() => {});
+  U().get().then(d => { const n = d.exists && d.data().appIcon; if (n && n !== curIcon()) { applyIcon(n); render(true); } }).catch(() => {}); // el conector te encuentra en Nova Hub y VORTEX por este correo
   unsubs.push(U().collection('brains').onSnapshot(async snap => {
     if (snap.empty) { if (!seeded && !snap.metadata.fromCache) { seeded = true; await seedBrains(); } return; }
     S.brains = snap.docs.map(d => Object.assign({id: d.id, sources: [], toVortex: false}, d.data())).sort((a, b) => (a.order ?? 99) - (b.order ?? 99) || String(a.name).localeCompare(b.name));
@@ -443,19 +498,20 @@ function render(soft) {
   if (!S.brains.length) { m.innerHTML = '<div class="skel"></div>'; return; }
   const keepScroll = soft ? window.scrollY : 0, focus = document.activeElement && document.activeElement.id, val = focus && document.activeElement.value, sel = focus && document.activeElement.selectionStart;
   if (S.view === 'ask' && soft && $('#chatLog')) { paintChat(); return; } // no se pierde lo que escribes
+  if (soft && S.view === 'brain' && S.tab === 'graph' && $('#netCv') && S.graphSig === graphSig()) return; // la red no se reinicia si nada cambió
   m.innerHTML = `<div class="view${soft ? '' : ''}">${({home, brain: brainView, memories: memoriesView, ask: askView, settings: settingsView})[S.view]()}</div>`;
   if (soft) { m.firstElementChild.style.animation = 'none'; window.scrollTo(0, keepScroll); }
   if (focus && $('#' + focus)) { const el = $('#' + focus); el.focus(); if (val != null && el.value !== val) el.value = val; try { el.setSelectionRange(sel, sel); } catch {} }
   afterRender();
 }
-function afterRender() { const seg = $('.seg'); if (seg) movePill(seg); if (S.view === 'ask' || (S.view === 'brain' && S.tab === 'ask')) { paintChat(); loadChat(brain().id); } }
+function afterRender() { if (window.BrainGraphs) { BrainGraphs.sweep(); mountGraphs(); } const seg = $('.seg'); if (seg) movePill(seg); if (S.view === 'ask' || (S.view === 'brain' && S.tab === 'ask')) { paintChat(); loadChat(brain().id); } }
 function movePill(seg) { const on = seg.querySelector('button.on'), pill = seg.querySelector('.pill'); if (on && pill) { pill.style.left = on.offsetLeft + 'px'; pill.style.width = on.offsetWidth + 'px'; } }
 function go(v, opts) { S.view = v; if (opts && opts.brain) { S.cur = opts.brain; localStorage.setItem('nb3_cur', S.cur); } if (opts && opts.tab) S.tab = opts.tab; S.f.q = ''; window.scrollTo({top: 0}); render(); }
 
 function side() {
   const s = $('#side'); if (innerWidth < 980) { s.innerHTML = ''; return; }
   const nav = (v, i, t) => `<button class="side-nav ${S.view === v ? 'on' : ''}" data-go="${v}">${ic(i)}${t}</button>`;
-  s.innerHTML = `<div class="side-brand"><div class="orb sm">${orbSvg()}<div class="core"></div></div><div><b>Neural Brain</b><small>Tu segundo cerebro</small></div></div>
+  s.innerHTML = `<div class="side-brand"><img class="brandimg" src="${iconSrc(curIcon(), 96)}" alt="" width="40" height="40"><div><b>Neural Brain</b><small>Tu segundo cerebro</small></div></div>
     ${nav('home', 'brain', 'Cerebros')}${nav('memories', 'clock', 'Recuerdos')}${nav('ask', 'chat', 'Preguntar')}${nav('settings', 'gear', 'Ajustes')}
     <div class="side-sep">Mis cerebros</div>
     ${S.brains.map(b => `<button class="side-nav side-brain ${S.view === 'brain' && S.cur === b.id ? 'on' : ''}" style="--c:${b.color}" data-brain="${b.id}"><span class="dot"></span>${esc(b.name)}</button>`).join('')}
@@ -491,18 +547,43 @@ function brainCard(b) {
   return `<button class="glass bcard" style="--c:${b.color}" data-brain="${b.id}">
     <div class="row" style="justify-content:space-between;align-items:flex-start"><span class="bicon">${ic(b.icon)}</span><span class="chips">${(b.sources || []).map(s => `<span class="chip tiny ${APP[s].chip}">${APP[s].n}</span>`).join('')}${b.toVortex ? `<span class="chip tiny c-vx">${ic('link')}IA VORTEX</span>` : ''}</span></div>
     <div><h3>${esc(b.name)}</h3><div class="desc">${esc(b.desc || (last ? 'Último recuerdo: ' + capital(last.act) + ' ' + last.type : 'Enséñale algo para empezar'))}</div></div>
-    <div class="bstats"><span><b>${notesOf(b.id).length}</b>enseñanzas</span><span><b>${ev.length}</b>recuerdos</span><span><b>${b.learned && b.learned.at ? ago(b.learned.at).replace('hace ', '') : '—'}</b>aprendió</span></div></button>`;
+    <div class="bstats"><span class="sparkw">${window.BrainGraphs ? BrainGraphs.spark(notesOf(b.id), ev, b.color) : ''}</span><span><b>${notesOf(b.id).length}</b>enseñanzas</span><span><b>${ev.length}</b>recuerdos</span><span><b>${b.learned && b.learned.at ? ago(b.learned.at).replace('hace ', '') : '—'}</b>aprendió</span></div></button>`;
 }
 
 /* ── Un cerebro ── */
-const TABS = [['teach', 'Enseñanzas', 'learn'], ['memories', 'Recuerdos', 'clock'], ['learned', 'Lo que sabe', 'wand'], ['ask', 'Preguntar', 'chat'], ['config', 'Ajustes', 'gear']];
+const TABS = [['graph', 'Evolución', 'net'], ['teach', 'Enseñanzas', 'learn'], ['memories', 'Recuerdos', 'clock'], ['learned', 'Lo que sabe', 'wand'], ['ask', 'Preguntar', 'chat'], ['config', 'Ajustes', 'gear']];
 function brainView() {
   const b = brain();
   return `<div class="top" style="--c:${b.color}"><button class="ib" data-go="home" aria-label="Volver">${ic('back', 2.2)}</button><span class="bicon">${ic(b.icon)}</span><div class="grow"><h1>${esc(b.name)}</h1><p>${(b.sources || []).length ? 'Aprende de ' + b.sources.map(s => APP[s].n).join(' y ') : 'Solo aprende de lo que le enseñas'}${b.toVortex ? ' · le pasa su contexto a la IA de VORTEX' : ''}</p></div></div>
     <div class="glass seg"><span class="pill"></span>${TABS.map(([k, t, i]) => `<button class="${S.tab === k ? 'on' : ''}" data-tab="${k}" aria-label="${t}">${ic(i)}<span>${t}</span></button>`).join('')}</div>
-    <div id="tabBody" style="--c:${b.color}">${({teach: teachTab, memories: () => timeline(eventsOf(b), true), learned: learnedTab, ask: () => chatBody(b), config: configTab})[S.tab](b)}</div>
+    <div id="tabBody" style="--c:${b.color}">${({graph: graphTab, teach: teachTab, memories: () => timeline(eventsOf(b), true), learned: learnedTab, ask: () => chatBody(b), config: configTab})[S.tab](b)}</div>
 `;
 }
+function graphTab(b) {
+  const G = window.BrainGraphs, notes = notesOf(b.id), evs = eventsOf(b), st = G.stats(notes, evs, b.learned), hs = G.hubs(notes, evs), gr = G.growth(notes, evs, 30), max = Math.max(1, ...hs.map(h => h.items.length));
+  const tile = (v, l, i) => `<div class="glass gtile"><span class="gti">${ic(i)}</span><b>${v}</b><small>${l}</small></div>`;
+  return `<div class="ggrid">
+    <div class="glass glevel"><div class="lvwrap">${G.ring(st.progress, b.color, 104)}<div class="lvnum"><b>${st.level}</b><small>nivel</small></div></div>
+      <div class="lvtx"><b>${st.level < 3 ? 'Cerebro recién nacido' : st.level < 6 ? 'Cerebro en crecimiento' : st.level < 10 ? 'Cerebro entrenado' : 'Cerebro experto'}</b><small>${st.toNext === 1 ? '1 punto' : st.toNext + ' puntos'} para el nivel ${st.level + 1}. Cada enseñanza suma 8, cada regla maestra 12 más, cada recuerdo 1 y aprender 40.</small>
+      <div class="lvbar"><i style="width:${(st.progress * 100).toFixed(0)}%;background:${b.color}"></i></div></div></div>
+    ${tile(st.neurons, 'neuronas', 'brain')}${tile(st.links, 'conexiones', 'net')}${tile('+' + st.week, 'esta semana', 'bolt')}
+  </div>
+  <div class="glass netcard"><div class="nethead"><div><b>Red neuronal</b><small>Cada punto es algo que le diste. Los destellos viajan al núcleo: así lo estás alimentando.</small></div><span class="chip tiny live"><i></i>en vivo</span></div>
+    <div class="netbox"><canvas id="netCv" aria-label="Red neuronal del cerebro ${esc(b.name)}"></canvas><div class="nettip" id="netTip" hidden></div></div>
+    <div class="chips netleg">${hs.slice(0, 9).map(h => `<button class="chip" data-hub="${esc(h.key)}"><span class="dotc" style="background:${h.color};box-shadow:0 0 8px ${h.color}"></span>${esc(h.name)} <span style="opacity:.6">${h.items.length}</span></button>`).join('')}</div></div>
+  <div class="g2">
+    <div class="glass gcard"><div class="nethead"><div><b>Crecimiento · 30 días</b><small>Todo lo que ha aprendido, acumulado día con día.</small></div></div>${G.growthSVG(gr, b.color)}
+      <div class="gleg"><span><i style="background:${b.color}"></i>Total</span><span><i class="dash"></i>Enseñanzas</span><span><i style="background:${b.color};opacity:.55;height:8px"></i>Actividad del día</span></div></div>
+    <div class="glass gcard"><div class="nethead"><div><b>Con qué lo alimentas</b><small>De dónde viene lo que sabe.</small></div></div>
+      ${hs.length ? `<div class="diet">${hs.slice(0, 8).map((h, i) => `<div class="drow"><span>${esc(h.name)}</span><div class="dbar"><i style="width:${(h.items.length / max * 100).toFixed(1)}%;background:linear-gradient(90deg,${h.color},${h.color}88);animation-delay:${i * 70}ms"></i></div><b>${h.items.length}</b></div>`).join('')}</div>` : `<div class="empty" style="padding:24px 8px">${ic('learn')}<b>Todavía sin datos</b>Enséñale algo${(b.sources || []).length ? ' o espera los recuerdos de tus apps' : ''}.</div>`}
+    </div></div>`;
+}
+function graphSig() { const b = brain(); return b ? [b.id, b.color, notesOf(b.id).length, eventsOf(b).length, !!(b.learned && b.learned.text), (b.learned || {}).at].join('|') : ''; }
+function mountGraphs() { S.graphSig = graphSig();
+  const cv = $('#netCv'); if (!cv || cv.dataset.on) return; cv.dataset.on = '1'; const b = brain(), G = window.BrainGraphs, notes = notesOf(b.id), evs = eventsOf(b), st = G.stats(notes, evs, b.learned);
+  G.mountNet(cv, {name: b.name, color: b.color, hubs: G.hubs(notes, evs), learned: !!(b.learned && b.learned.text), total: st.neurons, level: st.level}, {tip: $('#netTip'), onHub: n => hubGo(n.key)});
+}
+function hubGo(key) { const isNote = key.startsWith('nt:'); S.tab = isNote ? 'teach' : 'memories'; S.f.kind = isNote ? (key === 'nt:master' ? 'master' : key.slice(3)) : 'all'; S.f.q = isNote ? '' : ''; S.f.app = 'all'; if (!isNote) S.f.fam = key.slice(3); render(); }
 function teachTab(b) {
   const all = notesOf(b.id), q = S.f.q.toLowerCase();
   const f = all.filter(n => (S.f.kind === 'all' || (S.f.kind === 'master' ? n.master : (n.kind || 'nota') === S.f.kind)) && (!q || (n.text + ' ' + (n.author || '') + ' ' + (n.tags || []).join(' ')).toLowerCase().includes(q)))
@@ -525,9 +606,10 @@ function noteCard(n) {
 }
 function timeline(evs, inBrain) {
   const app = S.f.app, q = S.f.q.toLowerCase();
-  const f = evs.filter(e => (app === 'all' || e.app === app) && (!q || (e.title + ' ' + e.text + ' ' + e.type + ' ' + e.act).toLowerCase().includes(q)));
+  const fam = S.f.fam, f = evs.filter(e => (!fam || window.BrainGraphs.family(e).n === fam) && (app === 'all' || e.app === app) && (!q || (e.title + ' ' + e.text + ' ' + e.type + ' ' + e.act).toLowerCase().includes(q)));
   const apps = [...new Set(evs.map(e => e.app))];
   let html = `<div class="toolbar"><div class="glass search">${ic('search')}<input id="evQ" placeholder="Buscar en tus recuerdos…" value="${esc(S.f.q)}" autocomplete="off"></div></div>`;
+  if (S.f.fam) html += `<div class="chips" style="margin-bottom:6px"><button class="chip on" data-act="clearFam">${ic('x')}${esc(S.f.fam)}</button></div>`;
   if (apps.length > 1) html += `<div class="chips" style="margin-bottom:6px"><button class="chip ${app === 'all' ? 'on' : ''}" data-app="all">Todo</button>${apps.map(a => `<button class="chip ${APP[a] ? APP[a].chip : ''} ${app === a ? 'on' : ''}" data-app="${a}">${APP[a] ? APP[a].n : a}</button>`).join('')}</div>`;
   if (!f.length) {
     const b = inBrain && brain();
@@ -613,6 +695,13 @@ function settingsView() {
     <div class="glass list"><div class="set"><img src="${esc(u.photoURL || 'icon-96.png')}" alt="" width="42" height="42" style="border-radius:14px"><span class="bd"><b>${esc(u.displayName || 'Tu cuenta')}</b><small>${esc(u.email || '')}</small></span><button class="btn" data-act="logout">${ic('logout')}Salir</button></div></div>
     <div class="eyebrow">Conexiones</div><div class="glass list">${row('novahub')}${row('vortex')}</div>
     <p class="hint">${ic('info')}El conector corre en el servidor cada 30 minutos aunque tengas todo cerrado. Busca tu cuenta de Nova Hub y VORTEX por este mismo correo de Google. No agrega nada a esas apps: solo mira y te lo trae aquí.</p>
+    <div class="eyebrow">Tu guía</div>
+    <div class="glass list"><div class="set"><span class="nrset">${window.NeuraFace ? NeuraFace(54) : ''}</span><span class="bd"><b>Neura</b><small>Te explica cada cosa, cómo se conecta todo y cómo va cada cerebro. Te lleva a donde quieras y hace un recorrido guiado.</small></span><button class="btn" data-act="neuraOpen">Hablar</button></div>
+      <button class="set" data-act="neuraOn"><span class="bd"><b>Mostrar a Neura</b><small>Se asoma en la orilla de la pantalla.</small></span><span class="toggle ${!window.Neura || Neura.cfg().on ? 'on' : ''}"></span></button>
+      <button class="set" data-act="neuraTips"><span class="bd"><b>Consejos de vez en cuando</b><small>Se asoma con un tip según dónde estés.</small></span><span class="toggle ${!window.Neura || Neura.cfg().tips ? 'on' : ''}"></span></button></div>
+    <div class="eyebrow">Icono de la app</div>
+    <div class="glass appicons">${APP_ICONS.map((nm, i) => `<button class="aic ${curIcon() === i + 1 ? 'on' : ''}" data-appicon="${i + 1}" aria-label="Icono ${nm}"><img src="${iconSrc(i + 1, 192)}" alt="" loading="lazy"><span>${nm}${i === 0 ? ' · principal' : ''}</span></button>`).join('')}</div>
+    <p class="hint">${ic('info')}En el navegador cambia al instante. Si ya instalaste Neural Brain en tu celular, desinstálala y vuelve a instalarla para ver el icono nuevo en tu pantalla de inicio.</p>
     <div class="eyebrow">Tus datos</div><div class="glass list">
       <button class="set" data-act="export"><span class="bd"><b>Descargar todo mi cerebro</b><small>Un archivo con tus cerebros, enseñanzas, lo aprendido y tus recuerdos recientes.</small></span>${ic('down')}</button>
       <a class="set" href="legacy.html" style="color:inherit;text-decoration:none"><span class="bd"><b>Versión anterior</b><small>La interfaz vieja de Neural Brain, por si necesitas algo de ahí.</small></span>${ic('back')}</a></div>
@@ -668,7 +757,7 @@ async function createBrain() {
   const id = name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 24) + '-' + Date.now().toString(36).slice(-4);
   const sources = [...document.querySelectorAll('[data-nbs].on')].map(b => b.dataset.nbs);
   await saveBrain(id, {name, desc: $('#nbDesc').value.trim(), icon: T.icon, color: T.color, sources, toVortex: false, order: S.brains.length, createdAt: Date.now()});
-  closeSheet(); go('brain', {brain: id, tab: 'teach'}); toast('Cerebro creado');
+  closeSheet(); go('brain', {brain: id, tab: 'graph'}); toast('Cerebro creado');
 }
 
 /* ═══════════ Aprender ═══════════ */
@@ -696,12 +785,14 @@ function mic(btn) {
 
 /* ═══════════ Eventos ═══════════ */
 document.addEventListener('click', async e => {
-  const t = e.target.closest('[data-go],[data-brain],[data-tab],[data-act],[data-kind],[data-app],[data-q],[data-askbrain],[data-tb],[data-tk],[data-icon],[data-color],[data-nbs]');
+  const t = e.target.closest('[data-hub],[data-appicon],[data-go],[data-brain],[data-tab],[data-act],[data-kind],[data-app],[data-q],[data-askbrain],[data-tb],[data-tk],[data-icon],[data-color],[data-nbs]');
   if (!t) { if (e.target.id === 'back') closeSheet(); return; }
   const d = t.dataset;
   if (d.go) return go(d.go);
-  if (d.brain) return go('brain', {brain: d.brain, tab: S.view === 'brain' && S.cur !== d.brain ? S.tab : 'teach'});
-  if (d.tab) { S.tab = d.tab; S.f.q = ''; S.f.kind = 'all'; S.f.app = 'all'; render(); return; }
+  if (d.brain) return go('brain', {brain: d.brain, tab: S.view === 'brain' && S.cur !== d.brain ? S.tab : 'graph'});
+  if (d.tab) { S.tab = d.tab; S.f.q = ''; S.f.kind = 'all'; S.f.app = 'all'; S.f.fam = ''; render(); return; }
+  if (d.hub) { hubGo(d.hub); return; }
+  if (d.appicon) { applyIcon(+d.appicon, true); toast('Icono «' + APP_ICONS[+d.appicon - 1] + '» listo'); render(true); return; }
   if (d.kind) { S.f.kind = d.kind; render(true); return; }
   if (d.app && !d.act) { S.f.app = d.app; render(true); return; }
   if (d.q) return ask(d.q);
@@ -743,6 +834,10 @@ document.addEventListener('click', async e => {
     case 'conn': { const a = d.app; U().collection('settings').doc('connections').set({[a]: S.conn[a] === false}, {merge: true}); break; }
     case 'clearChat': { if (!confirm('¿Borrar esta conversación?')) break; const bid = $('#chatLog').dataset.b, s = await U().collection('brains').doc(bid).collection('chatHistory').get(); const batch = db.batch(); s.docs.forEach(x => batch.delete(x.ref)); await batch.commit(); S.chats[bid] = []; paintChat(); break; }
     case 'export': exportAll(); break;
+    case 'neuraOpen': if (window.Neura) Neura.open(); break;
+    case 'neuraOn': if (window.Neura) { Neura.set({on: !Neura.cfg().on}); render(true); } break;
+    case 'neuraTips': if (window.Neura) { Neura.set({tips: !Neura.cfg().tips}); render(true); } break;
+    case 'clearFam': S.f.fam = ''; render(true); break;
   }
 });
 document.addEventListener('input', e => {
@@ -784,8 +879,25 @@ async function exportAll() {
   if (!reduce) { raf = requestAnimationFrame(frame); document.addEventListener('visibilitychange', () => { if (document.hidden) cancelAnimationFrame(raf); else raf = requestAnimationFrame(frame); }); }
 })();
 
+/* ═══════════ Puente para Neura (neura.js) ═══════════ */
+window.NB = {
+  signedIn: () => !!S.user,
+  md, toast,
+  go(v, o) { if (v === 'brain') { o = o || {}; if (!o.brain) o.brain = S.cur; } go(v, o); },
+  teach() { if (S.user && S.brains.length) teachSheet(); },
+  learn() { learnNow(); },
+  snapshot() {
+    const G = window.BrainGraphs, TN = Object.fromEntries(TABS.map(t => [t[0], t[1]]));
+    const where = S.view === 'brain' ? `cerebro «${(brain() || {}).name}» · pestaña ${TN[S.tab] || S.tab}` : ({home: 'Cerebros (inicio)', memories: 'Recuerdos', ask: 'Preguntar', settings: 'Ajustes'})[S.view] || S.view;
+    const st = a => a === false ? 'pausado' : 'conectado';
+    return {view: S.view, tab: S.tab, where, name: firstName(), conn: {novahub: st(S.conn.novahub) + (S.status.novahub ? ', última sincronización ' + ago(S.status.novahub.at) : ', sin sincronizar aún'), vortex: st(S.conn.vortex) + (S.status.vortex ? ', última sincronización ' + ago(S.status.vortex.at) : ', sin sincronizar aún')},
+      brains: S.brains.map(b => { const n = notesOf(b.id), e = eventsOf(b), x = G.stats(n, e, b.learned), h = G.hubs(n, e); return {id: b.id, name: b.name, level: x.level, notes: n.length, masters: x.masters, events: e.length, week: x.week, sources: (b.sources || []).map(q => APP[q].n).join(' y '), toVortex: !!b.toVortex, learnedAgo: b.learned && b.learned.at ? ago(b.learned.at) : 'nunca', learned: b.learned && b.learned.text ? b.learned.text.replace(/\s+/g, ' ').slice(0, 450) : '', top: h.slice(0, 3).map(q => q.name + ' (' + q.items.length + ')').join(', ')}; })};
+  }
+};
+
 if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 boot();
 </script>
+<script src="neura.js"></script>
 </body>
 </html>
