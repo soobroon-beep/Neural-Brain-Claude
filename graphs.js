@@ -12,7 +12,7 @@
   // tipos de recuerdo agrupados en familias fáciles de leer
   const FAMILY = [
     [/operaci[oó]n/, 'Operaciones', '#4fe0b0'], [/idea de trade/, 'Ideas Long/Short', '#5ad1ff'], [/alerta/, 'Alertas', '#ffb35a'],
-    [/resultado de bot|bot|claudio/, 'Bots', '#b48cff'], [/script|indicador/, 'Indicadores', '#7d8dff'], [/seguimiento/, 'Seguimiento', '#8fb0ff'],
+    [/experimento/, 'Experimentos', '#f2c46d'], [/versi[oó]n del bot/, 'Versiones', '#c6a8ff'], [/paper/, 'Paper trading', '#4fe0b0'], [/resultado de bot/, 'Resultados', '#8fb0ff'], [/bot|claudio/, 'Bots', '#b48cff'], [/script|indicador/, 'Indicadores', '#7d8dff'], [/seguimiento/, 'Seguimiento', '#8fb0ff'],
     [/riesgo/, 'Riesgo', '#ff8aa0'], [/actualizaci[oó]n/, 'Actualizaciones', '#9aa6bd'], [/dibujo/, 'Dibujos', '#7c87a3'],
     [/tarea/, 'Tareas', '#ffb38a'], [/proyecto/, 'Proyectos', '#ff9a6a'], [/nota/, 'Notas de Nova Hub', '#ffc89a'], [/h[aá]bito/, 'Hábitos', '#6fe0c0'],
     [/diario/, 'Diario', '#e88bff'], [/recordatorio|evento|rutina/, 'Agenda', '#ffd36a']

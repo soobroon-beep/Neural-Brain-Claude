@@ -367,6 +367,7 @@ const P = {
   target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/>',
   music:'<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
   home:'<path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10"/>',
+  bot:'<rect x="4" y="8" width="16" height="12" rx="4"/><path d="M12 8V4M9 4h6"/><circle cx="9" cy="14" r="1.3"/><circle cx="15" cy="14" r="1.3"/><path d="M2 13v3M22 13v3"/>',
   plus:'<path d="M12 5v14M5 12h14"/>', back:'<path d="M15 18l-6-6 6-6"/>', x:'<path d="M18 6 6 18M6 6l12 12"/>',
   search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>', send:'<path d="M5 12h14M13 6l6 6-6 6"/>',
   mic:'<rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
@@ -381,7 +382,7 @@ const P = {
   logout:'<path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/>', info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>', check:'<path d="m5 12 5 5 9-10"/>'
 };
 const ic = (k, sw) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw || 1.8}" stroke-linecap="round" stroke-linejoin="round">${P[k] || P.brain}</svg>`;
-const BRAIN_ICONS = ['brain', 'chart', 'ink', 'spark', 'heart', 'book', 'rocket', 'planet', 'bolt', 'target', 'music', 'home'];
+const BRAIN_ICONS = ['brain', 'chart', 'bot', 'ink', 'spark', 'heart', 'book', 'rocket', 'planet', 'bolt', 'target', 'home'];
 const COLORS = ['#6d8dff', '#9a7bff', '#2bd4a4', '#f2c46d', '#ff7a8f', '#ff9a5a', '#47c6ff', '#e86bff'];
 const KIND = [['nota', 'Nota'], ['regla', 'Regla'], ['estrategia', 'Estrategia'], ['trader', 'Trader'], ['leccion', 'Lección']];
 const KIND_NAME = Object.fromEntries(KIND);
@@ -431,9 +432,11 @@ function md(t) {
   }
   if (ul) out.push('</ul>'); return '<div class="md">' + out.join('') + '</div>';
 }
+const isBot = b => !!(b && b.kind === 'bot' && b.bot && b.bot.id);
+const botsSeen = () => { const m = new Map(); for (const e of S.events) if (e.app === 'vortex' && e.type === 'bot' && /^b:/.test(e.ref || '') && !m.has(e.ref)) m.set(e.ref, {id: e.ref.slice(2), name: e.title}); return [...m.values()]; };
 const brain = id => S.brains.find(b => b.id === (id || S.cur)) || S.brains[0];
 const notesOf = id => S.notes[id] || [];
-const eventsOf = b => b ? S.events.filter(e => (b.sources || []).includes(e.app)) : [];
+const eventsOf = b => b ? L.brainEvents(b, S.events) : [];
 const loadScript = src => new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('No cargó ' + src)); document.head.appendChild(s); });
 
 /* ═══════════ Firebase ═══════════ */
@@ -555,7 +558,7 @@ function brainCard(b) {
 const TABS = [['graph', 'Evolución', 'net'], ['teach', 'Enseñanzas', 'learn'], ['memories', 'Recuerdos', 'clock'], ['learned', 'Lo que sabe', 'wand'], ['ask', 'Preguntar', 'chat'], ['config', 'Ajustes', 'gear']];
 function brainView() {
   const b = brain();
-  return `<div class="top" style="--c:${b.color}"><button class="ib" data-go="home" aria-label="Volver">${ic('back', 2.2)}</button><span class="bicon">${ic(b.icon)}</span><div class="grow"><h1>${esc(b.name)}</h1><p>${(b.sources || []).length ? 'Aprende de ' + b.sources.map(s => APP[s].n).join(' y ') : 'Solo aprende de lo que le enseñas'}${b.toVortex ? ' · le pasa su contexto a la IA de VORTEX' : ''}</p></div></div>
+  return `<div class="top" style="--c:${b.color}"><button class="ib" data-go="home" aria-label="Volver">${ic('back', 2.2)}</button><span class="bicon">${ic(b.icon)}</span><div class="grow"><h1>${esc(b.name)}</h1><p>${isBot(b) ? `Cerebro del bot «${esc(b.bot.name)}» de Nova Bot Lab · ${b.bot.auto !== false ? 'lo mejora solo cada noche' : 'mejora automática en pausa'}` : (b.sources || []).length ? 'Aprende de ' + b.sources.map(s => APP[s].n).join(' y ') : 'Solo aprende de lo que le enseñas'}${b.toVortex ? ' · le pasa su contexto a la IA de VORTEX' : ''}</p></div></div>
     <div class="glass seg"><span class="pill"></span>${TABS.map(([k, t, i]) => `<button class="${S.tab === k ? 'on' : ''}" data-tab="${k}" aria-label="${t}">${ic(i)}<span>${t}</span></button>`).join('')}</div>
     <div id="tabBody" style="--c:${b.color}">${({graph: graphTab, teach: teachTab, memories: () => timeline(eventsOf(b), true), learned: learnedTab, ask: () => chatBody(b), config: configTab})[S.tab](b)}</div>
 `;
@@ -572,6 +575,7 @@ function graphTab(b) {
   <div class="glass netcard"><div class="nethead"><div><b>Red neuronal</b><small>Cada punto es algo que le diste. Los destellos viajan al núcleo: así lo estás alimentando.</small></div><span class="chip tiny live"><i></i>en vivo</span></div>
     <div class="netbox"><canvas id="netCv" aria-label="Red neuronal del cerebro ${esc(b.name)}"></canvas><div class="nettip" id="netTip" hidden></div></div>
     <div class="chips netleg">${hs.slice(0, 9).map(h => `<button class="chip" data-hub="${esc(h.key)}"><span class="dotc" style="background:${h.color};box-shadow:0 0 8px ${h.color}"></span>${esc(h.name)} <span style="opacity:.6">${h.items.length}</span></button>`).join('')}</div></div>
+  ${isBot(b) ? botCard(b, evs) : ''}
   <div class="g2">
     <div class="glass gcard"><div class="nethead"><div><b>Crecimiento · 30 días</b><small>Todo lo que ha aprendido, acumulado día con día.</small></div></div>${G.growthSVG(gr, b.color)}
       <div class="gleg"><span><i style="background:${b.color}"></i>Total</span><span><i class="dash"></i>Enseñanzas</span><span><i style="background:${b.color};opacity:.55;height:8px"></i>Actividad del día</span></div></div>
@@ -580,6 +584,14 @@ function graphTab(b) {
     </div></div>`;
 }
 function graphSig() { const b = brain(); return b ? [b.id, b.color, notesOf(b.id).length, eventsOf(b).length, !!(b.learned && b.learned.text), (b.learned || {}).at].join('|') : ''; }
+function botCard(b, evs) {
+  const ex = evs.filter(e => e.type === 'experimento del bot').sort((p, q) => (q.at || 0) - (p.at || 0)), ver = evs.filter(e => e.type === 'versión del bot').sort((p, q) => (q.at || 0) - (p.at || 0));
+  const won = ex.filter(e => /propuesta:/.test(e.title)).length;
+  const rows = ex.slice(0, 6).map(e => { const lines = String(e.text || '').split('\n').filter(l => /^- /.test(l)); const ok = lines.filter(l => /GANA/.test(l)).length; return `<button class="ev" data-ev="${esc(e.id)}" data-act="expandEv"><span class="lg" style="background:${/propuesta:/.test(e.title) ? 'rgba(43,212,164,.16);color:#7fe3c4' : 'rgba(255,255,255,.05);color:var(--muted)'}">${ic(/propuesta:/.test(e.title) ? 'check' : 'clock')}</span><div class="bd"><div class="what"><b>${esc(dayLabel(e.at))}</b> · ${lines.length} ideas probadas · ${ok} ganaron</div><div class="ttl">${esc(e.title.replace(/^.*? · /, ''))}</div><div class="more">${esc(e.text)}</div></div></button>`; }).join('');
+  return `<div class="glass gcard" style="margin-bottom:12px"><div class="nethead"><div><b>Experimentos del bot</b><small>Cada noche prueba ideas con velas reales; solo te propone una versión si gana fuera de muestra. Tú la apruebas en VORTEX → Nova Bot Lab.</small></div><span class="chip tiny ${b.bot.auto !== false ? 'live' : ''}">${b.bot.auto !== false ? '<i></i>mejora automática' : 'en pausa'}</span></div>
+    <div class="row" style="gap:18px;margin:4px 0 10px;font-size:12.5px;color:var(--muted)"><span><b style="color:var(--text);font-size:18px">${ex.length}</b> noches de prueba</span><span><b style="color:#7fe3c4;font-size:18px">${won}</b> propuestas</span><span><b style="color:var(--text);font-size:18px">${ver.length}</b> versiones</span></div>
+    ${rows ? `<div class="tl" style="border:1px solid var(--line)">${rows}</div>` : `<div class="empty" style="padding:18px 8px">${ic('bot')}<b>Esperando la primera noche</b>El reentrenamiento corre cada noche (00:17 de CDMX). Al día siguiente verás aquí qué probó y qué ganó.</div>`}</div>`;
+}
 function mountGraphs() { S.graphSig = graphSig();
   const cv = $('#netCv'); if (!cv || cv.dataset.on) return; cv.dataset.on = '1'; const b = brain(), G = window.BrainGraphs, notes = notesOf(b.id), evs = eventsOf(b), st = G.stats(notes, evs, b.learned);
   G.mountNet(cv, {name: b.name, color: b.color, hubs: G.hubs(notes, evs), learned: !!(b.learned && b.learned.text), total: st.neurons, level: st.level}, {tip: $('#netTip'), onHub: n => hubGo(n.key)});
@@ -641,7 +653,10 @@ function configTab(b) {
     <div class="field"><label for="bDesc">De qué trata</label><input class="inp" id="bDesc" maxlength="140" value="${esc(b.desc || '')}"></div>
     <div class="lbl">Icono</div><div class="icons">${BRAIN_ICONS.map(k => `<button class="${b.icon === k ? 'on' : ''}" data-icon="${k}" aria-label="${k}">${ic(k)}</button>`).join('')}</div>
     <div class="lbl">Color</div><div class="colors">${COLORS.map(c => `<button class="${b.color === c ? 'on' : ''}" style="--sw:${c}" data-color="${c}" aria-label="Color ${c}"></button>`).join('')}</div>
-    <div class="lbl">De dónde aprende</div><div class="glass list">${src('novahub')}${src('vortex')}</div>
+    ${isBot(b) ? `<div class="lbl">Bot conectado</div><div class="glass list"><div class="set"><span class="bicon" style="width:38px;height:38px">${ic('bot')}</span><span class="bd"><b>${esc(b.bot.name)}</b><small>Nova Bot Lab · aprende de sus versiones, resultados, experimentos y paper trading.</small></span></div>
+      <button class="set" data-act="botAuto"><span class="bd"><b>Mejorarlo solo cada noche</b><small>El servidor prueba ideas (del entrenador, de este cerebro y del optimizador) con velas reales y solo te propone una versión candidata si gana fuera de muestra, sin más caída y sin romper tus reglas maestras. Nunca la activa ni opera con dinero real: tú la apruebas en VORTEX.</small></span><span class="toggle ${b.bot.auto !== false ? 'on' : ''}"></span></button>
+      <button class="set" data-act="botUnlink"><span class="bd"><b>Desconectar el bot</b><small>El cerebro conserva lo que aprendió.</small></span>${ic('x')}</button></div>`
+    : `<div class="lbl">De dónde aprende</div><div class="glass list">${src('novahub')}${src('vortex')}</div>`}
     <div class="lbl">Qué hace con lo que aprende</div><div class="glass list">
       <button class="set" data-act="toVortex"><span class="bd"><b>Pasárselo a la IA de VORTEX</b><small>Sus reglas maestras, estrategias y lo que aprende de ti se usan en «Analizar gráfico» y el «Briefing del día». Nexus Pixel no lo toca.</small></span><span class="toggle ${b.toVortex ? 'on' : ''}"></span></button>
       <button class="set" data-act="autoLearn"><span class="bd"><b>Aprender solo cada noche</b><small>Si hubo recuerdos o enseñanzas nuevas, actualiza «Lo que sabe» a las 3:20 a. m.</small></span><span class="toggle ${b.autoLearn !== false ? 'on' : ''}"></span></button></div>
@@ -751,6 +766,7 @@ function newBrainSheet() {
     <div class="field"><label for="nbName">Nombre</label><input class="inp" id="nbName" maxlength="40" placeholder="Ej.: Scalping, Clientes, Salud…"></div>
     <div class="field"><label for="nbDesc">De qué trata (opcional)</label><input class="inp" id="nbDesc" maxlength="140"></div>
     <div class="lbl">Aprende de</div><div class="chips"><button class="chip" data-nbs="novahub">Nova Hub</button><button class="chip" data-nbs="vortex">VORTEX</button></div>
+    ${botsSeen().length ? `<div class="lbl">O hazlo el cerebro de un bot de Nova Bot Lab</div><div class="chips">${botsSeen().filter(x => !S.brains.some(q => isBot(q) && q.bot.id === x.id)).map(x => `<button class="chip" data-act="botBrain" data-bot="${esc(x.id)}" data-botname="${esc(x.name)}">${ic('bot')}${esc(x.name)}</button>`).join('') || '<span class="hint">Todos tus bots ya tienen cerebro.</span>'}</div><p class="hint">${ic('info')}El cerebro de un bot aprende de sus experimentos y lo mejora solo cada noche (siempre con tu aprobación).</p>` : ''}
     <div class="row" style="margin-top:20px"><button class="btn" data-act="closeSheet">Cancelar</button><button class="btn pri" style="flex:1" data-act="createBrain">${ic('plus', 2.2)}Crear</button></div>`);
 }
 async function createBrain() {
@@ -828,10 +844,13 @@ document.addEventListener('click', async e => {
     case 'learn': learnNow(); break;
     case 'src': { const s = d.src, cur = new Set(b.sources || []); cur.has(s) ? cur.delete(s) : cur.add(s); saveBrain(b.id, {sources: [...cur]}); break; }
     case 'toVortex': saveBrain(b.id, {toVortex: !b.toVortex}); toast(!b.toVortex ? 'VORTEX lo recibe en la próxima sincronización (máx. 30 min)' : 'Ya no se le pasa a VORTEX'); break;
+    case 'botAuto': saveBrain(b.id, {bot: Object.assign({}, b.bot, {auto: b.bot.auto === false})}); toast(b.bot.auto === false ? 'Lo mejorará cada noche' : 'Mejora automática en pausa'); break;
+    case 'botUnlink': if (confirm('¿Desconectar el bot de este cerebro? Lo aprendido se conserva.')) saveBrain(b.id, {kind: 'normal', bot: null}); break;
     case 'autoLearn': saveBrain(b.id, {autoLearn: b.autoLearn === false}); break;
     case 'delBrain': if (confirm(`¿Borrar el cerebro «${b.name}» y todo lo que le enseñaste? Tus recuerdos de las apps no se borran.`)) { const ns = await U().collection('brains').doc(b.id).collection('notes').get(); const batch = db.batch(); ns.docs.forEach(x => batch.delete(x.ref)); batch.delete(U().collection('brains').doc(b.id)); await batch.commit(); go('home'); toast('Cerebro borrado'); } break;
     case 'newBrain': newBrainSheet(); break;
     case 'createBrain': createBrain(); break;
+    case 'botBrain': { const id = 'bot-' + d.bot; await saveBrain(id, {name: 'Bot · ' + d.botname, kind: 'bot', bot: {id: d.bot, name: d.botname, auto: true}, icon: 'bot', color: '#9a7bff', desc: `Cerebro del bot «${d.botname}»: aprende de cada experimento y lo mejora solo cada noche.`, sources: ['vortex'], toVortex: false, autoLearn: true, order: S.brains.length, createdAt: Date.now()}); closeSheet(); go('brain', {brain: id, tab: 'graph'}); toast('Cerebro del bot creado: esta noche empieza a mejorarlo'); break; }
     case 'conn': { const a = d.app; U().collection('settings').doc('connections').set({[a]: S.conn[a] === false}, {merge: true}); break; }
     case 'clearChat': { if (!confirm('¿Borrar esta conversación?')) break; const bid = $('#chatLog').dataset.b, s = await U().collection('brains').doc(bid).collection('chatHistory').get(); const batch = db.batch(); s.docs.forEach(x => batch.delete(x.ref)); await batch.commit(); S.chats[bid] = []; paintChat(); break; }
     case 'export': exportAll(); break;

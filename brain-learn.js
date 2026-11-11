@@ -19,7 +19,11 @@
     const head = `${fmtDay(e.at)} · ${APPS[e.app] || e.app} · ${cap(e.act || '')} ${e.type || ''}${e.title ? ': ' + clip(e.title, 140) : ''}`;
     return detail && e.text && e.text !== e.title ? head + ' — ' + clip(e.text.replace(/\s+/g, ' '), detail) : head;
   }
-  const brainEvents = (brain, events) => (events || []).filter(e => (brain.sources || []).includes(e.app));
+  const botRef = id => new RegExp('^(?:b|br|bx|bv|bp):' + String(id).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?::|$)');
+  const brainEvents = (brain, events) => { // un cerebro de bot solo ve lo de SU bot (versiones, resultados, experimentos, paper)
+    if (brain.kind === 'bot' && brain.bot && brain.bot.id) { const re = botRef(brain.bot.id); return (events || []).filter(e => e.app === 'vortex' && re.test(e.ref || '')); }
+    return (events || []).filter(e => (brain.sources || []).includes(e.app));
+  };
 
   function noteLine(n) { return `- ${n.master ? '[REGLA MAESTRA] ' : ''}${n.kind && n.kind !== 'nota' ? '[' + (KINDS[n.kind] || n.kind) + (n.author ? ' · ' + n.author : '') + '] ' : ''}${clip(String(n.text || '').replace(/\s+/g, ' '), 450)}`; }
   function notesBlock(notes, max) {
@@ -35,7 +39,15 @@
 
   function learnMessages(brain, notes, events, name) {
     const who = name || 'el usuario';
-    const sys = `Eres el «cerebro» personal de ${who}: una memoria que lo va conociendo con el tiempo. Respondes SIEMPRE en español.
+    const sys = brain.kind === 'bot' ? `Eres el «cerebro» del bot de trading «${(brain.bot && brain.bot.name) || brain.name}» de ${who}. Respondes SIEMPRE en español.
+Cada noche el servidor prueba ideas para mejorar el bot (consejos del entrenador, ideas tuyas y el optimizador) con velas reales y solo propone las que ganan FUERA DE MUESTRA sin más caída. Tu tarea: leer sus reglas, las versiones del bot, los experimentos y el paper trading, y escribir «Lo que sé de este bot». La próxima noche se usa para decidir qué probar.
+REGLAS: solo afirma lo que dicen los datos; usa números concretos. Nunca sugieras subir riesgo, tamaño ni apalancamiento ni romper sus reglas maestras.
+FORMATO (markdown, máximo ~350 palabras, viñetas cortas):
+### Cómo va el bot (versión principal, fuera de muestra, paper trading)
+### Lo que ya funcionó
+### Lo que ya probamos y NO funcionó (no repetir)
+### Próximos experimentos (2-4 ideas concretas: salidas, filtros, horarios, confirmaciones)
+### Reglas que no se pueden romper` : `Eres el «cerebro» personal de ${who}: una memoria que lo va conociendo con el tiempo. Respondes SIEMPRE en español.
 Tu tarea: leer lo que te enseñó y sus RECUERDOS (lo que hizo en sus apps: notas, proyectos, tareas, operaciones de trading, bots, alertas, ideas Long/Short, actualizaciones de sus apps) y escribir «Lo que sé de ti» para el cerebro «${brain.name}».
 REGLAS: solo afirma lo que se desprende de los datos; si algo es una suposición, dilo («parece que…»). Nada de relleno ni frases genéricas. Conserva lo valioso del aprendizaje anterior y corrígelo si los datos nuevos lo contradicen. Usa números concretos cuando los haya (aciertos, horarios, monedas, temporalidades).
 FORMATO (markdown, máximo ~380 palabras, viñetas cortas), con estas secciones:
