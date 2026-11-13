@@ -13,7 +13,10 @@
 <link rel="apple-touch-icon" id="lnkTouch" href="apple-touch-icon.png">
 <link rel="icon" id="lnkFav" href="icon-96.png">
 <script>/* icono elegido (Ajustes → Icono de la app): se aplica antes de pintar */
-try{var _i=+localStorage.getItem('nb3_icon')||1;if(_i>1&&_i<=16){document.getElementById('lnkManifest').href='manifests/icon-'+_i+'.json';document.getElementById('lnkTouch').href='icons/app/i'+_i+'-180.png';document.getElementById('lnkFav').href='icons/app/i'+_i+'-96.png';}}catch(e){}</script>
+try{var _i=+localStorage.getItem('nb3_icon')||1;if(_i>1&&_i<=16){document.getElementById('lnkManifest').href='manifests/icon-'+_i+'.json';document.getElementById('lnkTouch').href='icons/app/i'+_i+'-180.png';document.getElementById('lnkFav').href='icons/app/i'+_i+'-96.png';}}catch(e){}
+/* En PC (igual que VORTEX): al instalar, en el dock/barra de tareas y en la pestaña sale solo el símbolo blanco, sin fondo y más grande. En celular todo sigue igual. */
+window.NB_PC=(function(){try{var u=navigator.userAgent||'',m=/Android|iPhone|iPad|iPod|Mobile/i.test(u)||(navigator.userAgentData&&navigator.userAgentData.mobile)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1);return !m&&matchMedia('(pointer: fine)').matches;}catch(e){return false;}})();
+if(window.NB_PC){document.getElementById('lnkManifest').href='manifest-pc.json';document.getElementById('lnkFav').href='icon-pc-96.png';}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -400,6 +403,7 @@ const iconSrc = (n, s) => `icons/app/i${n}-${s || 192}.png`;
 function applyIcon(n, save) {
   n = n >= 1 && n <= 16 ? n : 1; try { localStorage.setItem('nb3_icon', String(n)); } catch {}
   $('#lnkManifest').href = n === 1 ? 'manifest.json' : `manifests/icon-${n}.json`; $('#lnkTouch').href = n === 1 ? 'apple-touch-icon.png' : iconSrc(n, 180); $('#lnkFav').href = n === 1 ? 'icon-96.png' : iconSrc(n, 96);
+  if (window.NB_PC) { $('#lnkManifest').href = 'manifest-pc.json'; $('#lnkFav').href = 'icon-pc-96.png'; } // PC: siempre el símbolo blanco sin fondo
   if (save && S.user) U().set({appIcon: n}, {merge: true}).catch(() => {});
 }
 
