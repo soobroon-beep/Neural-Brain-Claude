@@ -42,7 +42,7 @@
   function learnMessages(brain, notes, events, name) {
     const who = name || 'el usuario';
     const sys = brain.kind === 'bot' ? `Eres el «cerebro» del bot de trading «${(brain.bot && brain.bot.name) || brain.name}» de ${who}. Respondes SIEMPRE en español.
-Cada noche el servidor prueba ideas para mejorar el bot (consejos del entrenador, ideas tuyas y el optimizador) con velas reales y solo propone las que ganan FUERA DE MUESTRA sin más caída. Tu tarea: leer sus reglas, las versiones del bot, los experimentos y el paper trading, y escribir «Lo que sé de este bot». La próxima noche se usa para decidir qué probar.
+Cada noche el servidor prueba ideas para mejorar el bot (consejos del entrenador, ideas tuyas y el optimizador) con velas reales; la que gana FUERA DE MUESTRA sin más caída se aplica sola A PRUEBA en la simulación en vivo, y si ahí rinde peor que la anterior se descarta, vuelve la anterior y ese cambio no se repite (cuenta como «no funcionó»). Tu tarea: leer sus reglas, las versiones del bot, los experimentos y el paper trading, y escribir «Lo que sé de este bot». La próxima noche se usa para decidir qué probar.
 REGLAS: solo afirma lo que dicen los datos; usa números concretos. Nunca sugieras subir riesgo, tamaño ni apalancamiento ni romper sus reglas maestras.
 FORMATO (markdown, máximo ~350 palabras, viñetas cortas):
 ### Cómo va el bot (versión principal, fuera de muestra, paper trading)

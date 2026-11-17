@@ -93,19 +93,5 @@
       "type": "image/png",
       "purpose": "maskable"
     }
-  ],
-  "shortcuts": [
-    {
-      "name": "Mi IA",
-      "short_name": "Mi IA",
-      "description": "Platica con tu IA personal",
-      "url": "./index.html?view=ai",
-      "icons": [
-        {
-          "src": "./icon-96.png",
-          "sizes": "96x96"
-        }
-      ]
-    }
   ]
 }

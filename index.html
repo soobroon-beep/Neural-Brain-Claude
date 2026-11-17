@@ -332,7 +332,7 @@ textarea.inp{min-height:110px}
   <button data-go="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M6.6 7.2 9.6 10.4M17.4 7.2l-3 3.2M6.6 16.8l3-3.2M17.4 16.8l-3-3.2"/></svg>Cerebros</button>
   <button data-go="memories"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3 2"/></svg>Recuerdos</button>
   <button class="plus" data-act="teach" aria-label="Enseñar algo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
-  <button data-go="ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3.5c.6 3.9 2.6 5.9 6.5 6.5-3.9.6-5.9 2.6-6.5 6.5-.6-3.9-2.6-5.9-6.5-6.5 3.9-.6 5.9-2.6 6.5-6.5z"/><path d="M18.5 14.5c.3 1.9 1.2 2.8 3 3-1.8.3-2.7 1.2-3 3-.3-1.8-1.2-2.7-3-3 1.8-.2 2.7-1.1 3-3z"/></svg>Mi IA</button>
+  <button data-go="ask"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9 10h6M9 13.5h4"/></svg>Preguntar</button>
   <button data-go="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Ajustes</button>
 </nav>
 
@@ -347,7 +347,7 @@ textarea.inp{min-height:110px}
 'use strict';
 /* ═══════════ NEURAL BRAIN · tu segundo cerebro ═══════════
    · Varios cerebros, cada uno con lo que le enseñas (reglas, estrategias, traders, lecciones, notas).
-   · Recuerdos: lo que haces en Nova Hub y VORTEX llega solo (conector del servidor, cada 30 min).
+   · Recuerdos: lo que haces en Nova Hub y VORTEX llega solo (conector del servidor, cada pocas horas).
    · Aprende: una IA gratuita resume «Lo que sé de ti» (cada noche o cuando tú quieras).
    · Los cerebros marcados «Enviar a VORTEX» le pasan su contexto a la IA de VORTEX.
    Datos en Firebase (proyecto neural-brain-148a4), por cuenta de Google. */
@@ -509,13 +509,12 @@ function render(soft) {
   const keepScroll = soft ? window.scrollY : 0, focus = document.activeElement && document.activeElement.id, val = focus && document.activeElement.value, sel = focus && document.activeElement.selectionStart;
   if (S.view === 'ask' && soft && $('#chatLog')) { paintChat(); return; } // no se pierde lo que escribes
   if (soft && S.view === 'brain' && S.tab === 'graph' && $('#netCv') && S.graphSig === graphSig()) return; // la red no se reinicia si nada cambió
-  if (soft && S.view === 'ai' && $('#aiRoot') && window.AICore) { AICore.paint(); return; } // Mi IA se repinta sola sin perder lo que escribes
-  m.innerHTML = `<div class="view${soft ? '' : ''}">${({home, brain: brainView, memories: memoriesView, ask: askView, settings: settingsView, ai: () => window.AICore ? AICore.view() : '<div class="skel"></div>'})[S.view]()}</div>`;
+  m.innerHTML = `<div class="view${soft ? '' : ''}">${({home, brain: brainView, memories: memoriesView, ask: askView, settings: settingsView})[S.view]()}</div>`;
   if (soft) { m.firstElementChild.style.animation = 'none'; window.scrollTo(0, keepScroll); }
   if (focus && $('#' + focus)) { const el = $('#' + focus); el.focus(); if (val != null && el.value !== val) el.value = val; try { el.setSelectionRange(sel, sel); } catch {} }
   afterRender();
 }
-function afterRender() { if (S.view === 'ai' && window.AICore) AICore.after(); if (window.BrainGraphs) { BrainGraphs.sweep(); mountGraphs(); } const seg = $('.seg'); if (seg) movePill(seg); if (S.view === 'ask' || (S.view === 'brain' && S.tab === 'ask')) { paintChat(); loadChat(brain().id); } }
+function afterRender() { if (window.BrainGraphs) { BrainGraphs.sweep(); mountGraphs(); } const seg = $('.seg'); if (seg) movePill(seg); if (S.view === 'ask' || (S.view === 'brain' && S.tab === 'ask')) { paintChat(); loadChat(brain().id); } }
 function movePill(seg) { const on = seg.querySelector('button.on'), pill = seg.querySelector('.pill'); if (on && pill) { pill.style.left = on.offsetLeft + 'px'; pill.style.width = on.offsetWidth + 'px'; } }
 function go(v, opts) { S.view = v; if (opts && opts.brain) { S.cur = opts.brain; localStorage.setItem('nb3_cur', S.cur); } if (opts && opts.tab) S.tab = opts.tab; S.f.q = ''; window.scrollTo({top: 0}); render(); }
 
@@ -523,7 +522,8 @@ function side() {
   const s = $('#side'); if (innerWidth < 980) { s.innerHTML = ''; return; }
   const nav = (v, i, t) => `<button class="side-nav ${S.view === v ? 'on' : ''}" data-go="${v}">${ic(i)}${t}</button>`;
   s.innerHTML = `<div class="side-brand"><img class="brandimg" src="${iconSrc(curIcon(), 96)}" alt="" width="44" height="44"><div><b>Neural Brain</b><small>Tu segundo cerebro</small></div></div>
-    ${nav('ai', 'spark', 'Mi IA')}${nav('home', 'brain', 'Cerebros')}${nav('memories', 'clock', 'Recuerdos')}${nav('ask', 'chat', 'Preguntar a un cerebro')}${nav('settings', 'gear', 'Ajustes')}
+    ${nav('home', 'brain', 'Cerebros')}${nav('memories', 'clock', 'Recuerdos')}${nav('ask', 'chat', 'Preguntar')}${nav('settings', 'gear', 'Ajustes')}
+    <a class="side-nav side-miia" href="../mi-ia/" target="_blank" rel="noopener" style="text-decoration:none"><img src="../mi-ia/icons/icon-96.png" alt="" width="20" height="20">Mi IA<span style="margin-left:auto;opacity:.5">${ic('link')}</span></a>
     <div class="side-sep">Mis cerebros</div>
     ${S.brains.map(b => `<button class="side-nav side-brain ${S.view === 'brain' && S.cur === b.id ? 'on' : ''}" style="--c:${b.color}" data-brain="${b.id}"><span class="dot"></span>${esc(b.name)}</button>`).join('')}
     <button class="side-nav side-new" data-act="teach">${ic('plus', 2.2)}Enseñar algo</button>`;
@@ -595,7 +595,7 @@ function botCard(b, evs) {
   const ex = evs.filter(e => e.type === 'experimento del bot').sort((p, q) => (q.at || 0) - (p.at || 0)), ver = evs.filter(e => e.type === 'versión del bot').sort((p, q) => (q.at || 0) - (p.at || 0));
   const won = ex.filter(e => /propuesta:/.test(e.title)).length;
   const rows = ex.slice(0, 6).map(e => { const lines = String(e.text || '').split('\n').filter(l => /^- /.test(l)); const ok = lines.filter(l => /GANA/.test(l)).length; return `<button class="ev" data-ev="${esc(e.id)}" data-act="expandEv"><span class="lg" style="background:${/propuesta:/.test(e.title) ? 'rgba(43,212,164,.16);color:#7fe3c4' : 'rgba(255,255,255,.05);color:var(--muted)'}">${ic(/propuesta:/.test(e.title) ? 'check' : 'clock')}</span><div class="bd"><div class="what"><b>${esc(dayLabel(e.at))}</b> · ${lines.length} ideas probadas · ${ok} ganaron</div><div class="ttl">${esc(e.title.replace(/^.*? · /, ''))}</div><div class="more">${esc(e.text)}</div></div></button>`; }).join('');
-  return `<div class="glass gcard" style="margin-bottom:12px"><div class="nethead"><div><b>Experimentos del bot</b><small>Cada noche prueba ideas con velas reales; solo te propone una versión si gana fuera de muestra. Tú la apruebas en VORTEX → Nova Bot Lab.</small></div><span class="chip tiny ${b.bot.auto !== false ? 'live' : ''}">${b.bot.auto !== false ? '<i></i>mejora automática' : 'en pausa'}</span></div>
+  return `<div class="glass gcard" style="margin-bottom:12px"><div class="nethead"><div><b>Experimentos del bot</b><small>Prueba ideas con velas reales; si una versión gana fuera de muestra se aplica sola A PRUEBA en la simulación en vivo, y si rinde peor que la anterior regresa sola y prueba otra variante.</small></div><span class="chip tiny ${b.bot.auto !== false ? 'live' : ''}">${b.bot.auto !== false ? '<i></i>mejora automática' : 'en pausa'}</span></div>
     <div class="row" style="gap:18px;margin:4px 0 10px;font-size:12.5px;color:var(--muted)"><span><b style="color:var(--text);font-size:18px">${ex.length}</b> noches de prueba</span><span><b style="color:#7fe3c4;font-size:18px">${won}</b> propuestas</span><span><b style="color:var(--text);font-size:18px">${ver.length}</b> versiones</span></div>
     ${rows ? `<div class="tl" style="border:1px solid var(--line)">${rows}</div>` : `<div class="empty" style="padding:18px 8px">${ic('bot')}<b>Esperando la primera noche</b>El reentrenamiento corre cada noche (00:17 de CDMX). Al día siguiente verás aquí qué probó y qué ganó.</div>`}</div>`;
 }
@@ -633,7 +633,7 @@ function timeline(evs, inBrain) {
   if (apps.length > 1) html += `<div class="chips" style="margin-bottom:6px"><button class="chip ${app === 'all' ? 'on' : ''}" data-app="all">Todo</button>${apps.map(a => `<button class="chip ${APP[a] ? APP[a].chip : ''} ${app === a ? 'on' : ''}" data-app="${a}">${APP[a] ? APP[a].n : a}</button>`).join('')}</div>`;
   if (!f.length) {
     const b = inBrain && brain();
-    return html + `<div class="empty">${ic('clock')}<b>${evs.length ? 'Nada con ese filtro' : 'Todavía no hay recuerdos'}</b>${evs.length ? '' : b && !(b.sources || []).length ? 'Este cerebro solo aprende de lo que le enseñas. En «Ajustes» puedes conectarle Nova Hub o VORTEX.' : 'En cuanto el conector sincronice (cada 30 min), aquí aparece lo que haces en tus apps.'}</div>`;
+    return html + `<div class="empty">${ic('clock')}<b>${evs.length ? 'Nada con ese filtro' : 'Todavía no hay recuerdos'}</b>${evs.length ? '' : b && !(b.sources || []).length ? 'Este cerebro solo aprende de lo que le enseñas. En «Ajustes» puedes conectarle Nova Hub o VORTEX.' : 'En cuanto el conector sincronice (cada pocas horas), aquí aparece lo que haces en tus apps.'}</div>`;
   }
   let day = '', open = false;
   for (const e of f) {
@@ -661,7 +661,7 @@ function configTab(b) {
     <div class="lbl">Icono</div><div class="icons">${BRAIN_ICONS.map(k => `<button class="${b.icon === k ? 'on' : ''}" data-icon="${k}" aria-label="${k}">${ic(k)}</button>`).join('')}</div>
     <div class="lbl">Color</div><div class="colors">${COLORS.map(c => `<button class="${b.color === c ? 'on' : ''}" style="--sw:${c}" data-color="${c}" aria-label="Color ${c}"></button>`).join('')}</div>
     ${isBot(b) ? `<div class="lbl">Bot conectado</div><div class="glass list"><div class="set"><span class="bicon" style="width:38px;height:38px">${ic('bot')}</span><span class="bd"><b>${esc(b.bot.name)}</b><small>Nova Bot Lab · aprende de sus versiones, resultados, experimentos y paper trading.</small></span></div>
-      <button class="set" data-act="botAuto"><span class="bd"><b>Mejorarlo solo cada noche</b><small>El servidor prueba ideas (del entrenador, de este cerebro y del optimizador) con velas reales y solo te propone una versión candidata si gana fuera de muestra, sin más caída y sin romper tus reglas maestras. Nunca la activa ni opera con dinero real: tú la apruebas en VORTEX.</small></span><span class="toggle ${b.bot.auto !== false ? 'on' : ''}"></span></button>
+      <button class="set" data-act="botAuto"><span class="bd"><b>Mejorarlo solo cada noche</b><small>El servidor prueba ideas (del entrenador, de este cerebro y del optimizador) con velas reales. Si una versión gana fuera de muestra sin más caída y sin romper tus reglas maestras, se aplica sola a prueba en la simulación en vivo; si ahí rinde peor que la anterior, regresa sola y prueba otra variante. Nunca opera con dinero real.</small></span><span class="toggle ${b.bot.auto !== false ? 'on' : ''}"></span></button>
       <button class="set" data-act="botUnlink"><span class="bd"><b>Desconectar el bot</b><small>El cerebro conserva lo que aprendió.</small></span>${ic('x')}</button></div>`
     : `<div class="lbl">De dónde aprende</div><div class="glass list">${src('novahub')}${src('vortex')}</div>`}
     <div class="lbl">Qué hace con lo que aprende</div><div class="glass list">
@@ -717,7 +717,9 @@ function settingsView() {
   return `<div class="top"><div class="grow"><h1>Ajustes</h1><p>Tu cuenta y qué apps alimentan tu cerebro.</p></div></div>
     <div class="glass list"><div class="set"><img src="${esc(u.photoURL || 'icon-96.png')}" alt="" width="42" height="42" style="border-radius:14px"><span class="bd"><b>${esc(u.displayName || 'Tu cuenta')}</b><small>${esc(u.email || '')}</small></span><button class="btn" data-act="logout">${ic('logout')}Salir</button></div></div>
     <div class="eyebrow">Conexiones</div><div class="glass list">${row('novahub')}${row('vortex')}</div>
-    <p class="hint">${ic('info')}El conector corre en el servidor cada 30 minutos aunque tengas todo cerrado. Busca tu cuenta de Nova Hub y VORTEX por este mismo correo de Google. No agrega nada a esas apps: solo mira y te lo trae aquí.</p>
+    <p class="hint">${ic('info')}El conector corre en el servidor cada pocas horas aunque tengas todo cerrado. Busca tu cuenta de Nova Hub y VORTEX por este mismo correo de Google. No agrega nada a esas apps: solo mira y te lo trae aquí.</p>
+    <div class="eyebrow">Tu IA personal</div>
+    <div class="glass list"><a class="set" href="../mi-ia/" target="_blank" rel="noopener" style="color:inherit;text-decoration:none"><img src="../mi-ia/icons/icon-192.png" alt="" width="46" height="46" style="border-radius:14px"><span class="bd"><b>Mi IA</b><small>Su propia app: platica con tu IA personal, que usa todos tus cerebros, tus apps, tu agenda y tus bots. Instálala en tu celular desde ahí.</small></span>${ic('link')}</a></div>
     <div class="eyebrow">Tu guía</div>
     <div class="glass list"><div class="set"><span class="nrset">${window.NeuraFace ? NeuraFace(54) : ''}</span><span class="bd"><b>Neura</b><small>Te explica cada cosa, cómo se conecta todo y cómo va cada cerebro. Te lleva a donde quieras y hace un recorrido guiado.</small></span><button class="btn" data-act="neuraOpen">Hablar</button></div>
       <button class="set" data-act="neuraOn"><span class="bd"><b>Mostrar a Neura</b><small>Se asoma en la orilla de la pantalla.</small></span><span class="toggle ${!window.Neura || Neura.cfg().on ? 'on' : ''}"></span></button>
@@ -850,7 +852,7 @@ document.addEventListener('click', async e => {
     case 'moreEv': S.evLimit += 600; listenEvents(); toast('Cargando más recuerdos…'); break;
     case 'learn': learnNow(); break;
     case 'src': { const s = d.src, cur = new Set(b.sources || []); cur.has(s) ? cur.delete(s) : cur.add(s); saveBrain(b.id, {sources: [...cur]}); break; }
-    case 'toVortex': saveBrain(b.id, {toVortex: !b.toVortex}); toast(!b.toVortex ? 'VORTEX lo recibe en la próxima sincronización (máx. 30 min)' : 'Ya no se le pasa a VORTEX'); break;
+    case 'toVortex': saveBrain(b.id, {toVortex: !b.toVortex}); toast(!b.toVortex ? 'VORTEX lo recibe en la próxima sincronización (en unas horas)' : 'Ya no se le pasa a VORTEX'); break;
     case 'botAuto': saveBrain(b.id, {bot: Object.assign({}, b.bot, {auto: b.bot.auto === false})}); toast(b.bot.auto === false ? 'Lo mejorará cada noche' : 'Mejora automática en pausa'); break;
     case 'botUnlink': if (confirm('¿Desconectar el bot de este cerebro? Lo aprendido se conserva.')) saveBrain(b.id, {kind: 'normal', bot: null}); break;
     case 'autoLearn': saveBrain(b.id, {autoLearn: b.autoLearn === false}); break;
@@ -909,25 +911,23 @@ async function exportAll() {
 /* ═══════════ Puente para Neura (neura.js) ═══════════ */
 window.NB = {
   signedIn: () => !!S.user,
-  core: () => ({db: () => db, U, S, L, ic, md, toast, ago, firstName, openSheet, closeSheet, saveBrain, notesOf, eventsOf, go, render}), // para Mi IA (ai-core.js)
   md, toast,
   go(v, o) { if (v === 'brain') { o = o || {}; if (!o.brain) o.brain = S.cur; } go(v, o); },
   teach() { if (S.user && S.brains.length) teachSheet(); },
   learn() { learnNow(); },
   snapshot() {
     const G = window.BrainGraphs, TN = Object.fromEntries(TABS.map(t => [t[0], t[1]]));
-    const where = S.view === 'brain' ? `cerebro «${(brain() || {}).name}» · pestaña ${TN[S.tab] || S.tab}` : ({home: 'Cerebros (inicio)', memories: 'Recuerdos', ask: 'Preguntar', ai: 'Mi IA (su IA personal)', settings: 'Ajustes'})[S.view] || S.view;
+    const where = S.view === 'brain' ? `cerebro «${(brain() || {}).name}» · pestaña ${TN[S.tab] || S.tab}` : ({home: 'Cerebros (inicio)', memories: 'Recuerdos', ask: 'Preguntar', settings: 'Ajustes'})[S.view] || S.view;
     const st = a => a === false ? 'pausado' : 'conectado';
     return {view: S.view, tab: S.tab, where, name: firstName(), conn: {novahub: st(S.conn.novahub) + (S.status.novahub ? ', última sincronización ' + ago(S.status.novahub.at) : ', sin sincronizar aún'), vortex: st(S.conn.vortex) + (S.status.vortex ? ', última sincronización ' + ago(S.status.vortex.at) : ', sin sincronizar aún')},
       brains: S.brains.map(b => { const n = notesOf(b.id), e = eventsOf(b), x = G.stats(n, e, b.learned), h = G.hubs(n, e); return {id: b.id, name: b.name, level: x.level, notes: n.length, masters: x.masters, events: e.length, week: x.week, sources: (b.sources || []).map(q => APP[q].n).join(' y '), toVortex: !!b.toVortex, learnedAgo: b.learned && b.learned.at ? ago(b.learned.at) : 'nunca', learned: b.learned && b.learned.text ? b.learned.text.replace(/\s+/g, ' ').slice(0, 450) : '', top: h.slice(0, 3).map(q => q.name + ' (' + q.items.length + ')').join(', ')}; })};
   }
 };
 
-try { const v = new URLSearchParams(location.search).get('view'); if (['ai', 'home', 'memories', 'ask', 'settings'].includes(v)) S.view = v; } catch {}
+try { const v = new URLSearchParams(location.search).get('view'); if (v === 'ai') location.replace('../mi-ia/'); else if (['home', 'memories', 'ask', 'settings'].includes(v)) S.view = v; } catch {} // Mi IA ahora es su propia app
 if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 boot();
 </script>
 <script src="neura.js"></script>
-<script src="ai-core.js"></script>
 </body>
 </html>
