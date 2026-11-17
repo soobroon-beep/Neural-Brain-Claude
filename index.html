@@ -332,7 +332,7 @@ textarea.inp{min-height:110px}
   <button data-go="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M6.6 7.2 9.6 10.4M17.4 7.2l-3 3.2M6.6 16.8l3-3.2M17.4 16.8l-3-3.2"/></svg>Cerebros</button>
   <button data-go="memories"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3 2"/></svg>Recuerdos</button>
   <button class="plus" data-act="teach" aria-label="Enseñar algo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
-  <button data-go="ask"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9 10h6M9 13.5h4"/></svg>Preguntar</button>
+  <button data-go="ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3.5c.6 3.9 2.6 5.9 6.5 6.5-3.9.6-5.9 2.6-6.5 6.5-.6-3.9-2.6-5.9-6.5-6.5 3.9-.6 5.9-2.6 6.5-6.5z"/><path d="M18.5 14.5c.3 1.9 1.2 2.8 3 3-1.8.3-2.7 1.2-3 3-.3-1.8-1.2-2.7-3-3 1.8-.2 2.7-1.1 3-3z"/></svg>Mi IA</button>
   <button data-go="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Ajustes</button>
 </nav>
 
@@ -341,6 +341,7 @@ textarea.inp{min-height:110px}
 <div id="toast" role="status"></div>
 
 <script src="brain-learn.js"></script>
+<script src="ai-core-lib.js"></script>
 <script src="graphs.js"></script>
 <script>
 'use strict';
@@ -461,8 +462,9 @@ function attach() {
   U().set({email: S.user.email || '', name: S.user.displayName || '', seenAt: Date.now()}, {merge: true}).catch(() => {});
   U().get().then(d => { const n = d.exists && d.data().appIcon; if (n && n !== curIcon()) { applyIcon(n); render(true); } }).catch(() => {}); // el conector te encuentra en Nova Hub y VORTEX por este correo
   unsubs.push(U().collection('brains').onSnapshot(async snap => {
-    if (snap.empty) { if (!seeded && !snap.metadata.fromCache) { seeded = true; await seedBrains(); } return; }
-    S.brains = snap.docs.map(d => Object.assign({id: d.id, sources: [], toVortex: false}, d.data())).sort((a, b) => (a.order ?? 99) - (b.order ?? 99) || String(a.name).localeCompare(b.name));
+    const docs = snap.docs.filter(d => d.id !== '_core'); // «Mi IA» vive en brains/_core: no es un cerebro de la lista
+    if (!docs.length) { if (!seeded && !snap.metadata.fromCache) { seeded = true; await seedBrains(); } return; }
+    S.brains = docs.map(d => Object.assign({id: d.id, sources: [], toVortex: false}, d.data())).sort((a, b) => (a.order ?? 99) - (b.order ?? 99) || String(a.name).localeCompare(b.name));
     for (const b of S.brains) if (!noteUnsubs[b.id]) noteUnsubs[b.id] = U().collection('brains').doc(b.id).collection('notes').onSnapshot(s => { S.notes[b.id] = s.docs.map(d => Object.assign({id: d.id}, d.data())); softRender(); }, () => {});
     for (const id of Object.keys(noteUnsubs)) if (!S.brains.some(b => b.id === id)) { noteUnsubs[id](); delete noteUnsubs[id]; delete S.notes[id]; }
     if (!S.cur || !S.brains.some(b => b.id === S.cur)) S.cur = (S.brains.find(b => b.id === localStorage.getItem('nb3_cur')) || S.brains[0] || {}).id || null;
@@ -507,12 +509,13 @@ function render(soft) {
   const keepScroll = soft ? window.scrollY : 0, focus = document.activeElement && document.activeElement.id, val = focus && document.activeElement.value, sel = focus && document.activeElement.selectionStart;
   if (S.view === 'ask' && soft && $('#chatLog')) { paintChat(); return; } // no se pierde lo que escribes
   if (soft && S.view === 'brain' && S.tab === 'graph' && $('#netCv') && S.graphSig === graphSig()) return; // la red no se reinicia si nada cambió
-  m.innerHTML = `<div class="view${soft ? '' : ''}">${({home, brain: brainView, memories: memoriesView, ask: askView, settings: settingsView})[S.view]()}</div>`;
+  if (soft && S.view === 'ai' && $('#aiRoot') && window.AICore) { AICore.paint(); return; } // Mi IA se repinta sola sin perder lo que escribes
+  m.innerHTML = `<div class="view${soft ? '' : ''}">${({home, brain: brainView, memories: memoriesView, ask: askView, settings: settingsView, ai: () => window.AICore ? AICore.view() : '<div class="skel"></div>'})[S.view]()}</div>`;
   if (soft) { m.firstElementChild.style.animation = 'none'; window.scrollTo(0, keepScroll); }
   if (focus && $('#' + focus)) { const el = $('#' + focus); el.focus(); if (val != null && el.value !== val) el.value = val; try { el.setSelectionRange(sel, sel); } catch {} }
   afterRender();
 }
-function afterRender() { if (window.BrainGraphs) { BrainGraphs.sweep(); mountGraphs(); } const seg = $('.seg'); if (seg) movePill(seg); if (S.view === 'ask' || (S.view === 'brain' && S.tab === 'ask')) { paintChat(); loadChat(brain().id); } }
+function afterRender() { if (S.view === 'ai' && window.AICore) AICore.after(); if (window.BrainGraphs) { BrainGraphs.sweep(); mountGraphs(); } const seg = $('.seg'); if (seg) movePill(seg); if (S.view === 'ask' || (S.view === 'brain' && S.tab === 'ask')) { paintChat(); loadChat(brain().id); } }
 function movePill(seg) { const on = seg.querySelector('button.on'), pill = seg.querySelector('.pill'); if (on && pill) { pill.style.left = on.offsetLeft + 'px'; pill.style.width = on.offsetWidth + 'px'; } }
 function go(v, opts) { S.view = v; if (opts && opts.brain) { S.cur = opts.brain; localStorage.setItem('nb3_cur', S.cur); } if (opts && opts.tab) S.tab = opts.tab; S.f.q = ''; window.scrollTo({top: 0}); render(); }
 
@@ -520,7 +523,7 @@ function side() {
   const s = $('#side'); if (innerWidth < 980) { s.innerHTML = ''; return; }
   const nav = (v, i, t) => `<button class="side-nav ${S.view === v ? 'on' : ''}" data-go="${v}">${ic(i)}${t}</button>`;
   s.innerHTML = `<div class="side-brand"><img class="brandimg" src="${iconSrc(curIcon(), 96)}" alt="" width="44" height="44"><div><b>Neural Brain</b><small>Tu segundo cerebro</small></div></div>
-    ${nav('home', 'brain', 'Cerebros')}${nav('memories', 'clock', 'Recuerdos')}${nav('ask', 'chat', 'Preguntar')}${nav('settings', 'gear', 'Ajustes')}
+    ${nav('ai', 'spark', 'Mi IA')}${nav('home', 'brain', 'Cerebros')}${nav('memories', 'clock', 'Recuerdos')}${nav('ask', 'chat', 'Preguntar a un cerebro')}${nav('settings', 'gear', 'Ajustes')}
     <div class="side-sep">Mis cerebros</div>
     ${S.brains.map(b => `<button class="side-nav side-brain ${S.view === 'brain' && S.cur === b.id ? 'on' : ''}" style="--c:${b.color}" data-brain="${b.id}"><span class="dot"></span>${esc(b.name)}</button>`).join('')}
     <button class="side-nav side-new" data-act="teach">${ic('plus', 2.2)}Enseñar algo</button>`;
@@ -725,7 +728,7 @@ function settingsView() {
     <div class="eyebrow">Tus datos</div><div class="glass list">
       <button class="set" data-act="export"><span class="bd"><b>Descargar todo mi cerebro</b><small>Un archivo con tus cerebros, enseñanzas, lo aprendido y tus recuerdos recientes.</small></span>${ic('down')}</button>
       <a class="set" href="legacy.html" style="color:inherit;text-decoration:none"><span class="bd"><b>Versión anterior</b><small>La interfaz vieja de Neural Brain, por si necesitas algo de ahí.</small></span>${ic('back')}</a></div>
-    <p class="hint" style="text-align:center;margin-top:26px">Neural Brain 3.0 · IA gratuita (Pollinations)</p>`;
+    <p class="hint" style="text-align:center;margin-top:26px">Neural Brain 3.1 · Mi IA · IA gratuita de modelos abiertos</p>`;
 }
 
 /* ═══════════ Hoja: enseñar / editar / nuevo cerebro ═══════════ */
@@ -906,22 +909,25 @@ async function exportAll() {
 /* ═══════════ Puente para Neura (neura.js) ═══════════ */
 window.NB = {
   signedIn: () => !!S.user,
+  core: () => ({db: () => db, U, S, L, ic, md, toast, ago, firstName, openSheet, closeSheet, saveBrain, notesOf, eventsOf, go, render}), // para Mi IA (ai-core.js)
   md, toast,
   go(v, o) { if (v === 'brain') { o = o || {}; if (!o.brain) o.brain = S.cur; } go(v, o); },
   teach() { if (S.user && S.brains.length) teachSheet(); },
   learn() { learnNow(); },
   snapshot() {
     const G = window.BrainGraphs, TN = Object.fromEntries(TABS.map(t => [t[0], t[1]]));
-    const where = S.view === 'brain' ? `cerebro «${(brain() || {}).name}» · pestaña ${TN[S.tab] || S.tab}` : ({home: 'Cerebros (inicio)', memories: 'Recuerdos', ask: 'Preguntar', settings: 'Ajustes'})[S.view] || S.view;
+    const where = S.view === 'brain' ? `cerebro «${(brain() || {}).name}» · pestaña ${TN[S.tab] || S.tab}` : ({home: 'Cerebros (inicio)', memories: 'Recuerdos', ask: 'Preguntar', ai: 'Mi IA (su IA personal)', settings: 'Ajustes'})[S.view] || S.view;
     const st = a => a === false ? 'pausado' : 'conectado';
     return {view: S.view, tab: S.tab, where, name: firstName(), conn: {novahub: st(S.conn.novahub) + (S.status.novahub ? ', última sincronización ' + ago(S.status.novahub.at) : ', sin sincronizar aún'), vortex: st(S.conn.vortex) + (S.status.vortex ? ', última sincronización ' + ago(S.status.vortex.at) : ', sin sincronizar aún')},
       brains: S.brains.map(b => { const n = notesOf(b.id), e = eventsOf(b), x = G.stats(n, e, b.learned), h = G.hubs(n, e); return {id: b.id, name: b.name, level: x.level, notes: n.length, masters: x.masters, events: e.length, week: x.week, sources: (b.sources || []).map(q => APP[q].n).join(' y '), toVortex: !!b.toVortex, learnedAgo: b.learned && b.learned.at ? ago(b.learned.at) : 'nunca', learned: b.learned && b.learned.text ? b.learned.text.replace(/\s+/g, ' ').slice(0, 450) : '', top: h.slice(0, 3).map(q => q.name + ' (' + q.items.length + ')').join(', ')}; })};
   }
 };
 
+try { const v = new URLSearchParams(location.search).get('view'); if (['ai', 'home', 'memories', 'ask', 'settings'].includes(v)) S.view = v; } catch {}
 if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 boot();
 </script>
 <script src="neura.js"></script>
+<script src="ai-core.js"></script>
 </body>
 </html>

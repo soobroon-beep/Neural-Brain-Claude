@@ -9,6 +9,27 @@ Con eso escribe **«Lo que sé de ti»** (cada noche, o con «Aprender ahora») 
 
 La IA es gratuita (Pollinations, la misma clave de VORTEX). Los datos viven en Firebase (proyecto `neural-brain-148a4`), por cuenta de Google.
 
+## Mi IA · tu IA personal
+
+En el dock, **Mi IA** es una IA que te conoce por **todo** lo que guarda Neural Brain a la vez: todos tus cerebros, tus recuerdos de Nova Hub y VORTEX, su propia memoria de tus conversaciones, tu Google Calendar y Gmail (si los conectas) y tus bots de Nova Bot Lab. No se entrena desde cero: usa modelos abiertos gratuitos (la misma cadena de Nova Hub y VORTEX) y lo que **crece es su memoria**.
+
+- **Chat**: conversaciones guardadas. Después de cada respuesta guarda en su memoria lo nuevo que le contaste de ti (sin repetir). Le das 👍/👎 y cada noche aprende cómo te gusta que te responda. Cuando conviene, propone **acciones que tú confirmas**: vigilar algo, recordar algo, enseñarlo a un cerebro o una mejora para un bot.
+- **Crecimiento**: un núcleo de neuronas que se hace más grande mientras más sabe, nivel y etapa (Semilla → Núcleo maestro), crecimiento de 45 días, nivel con el tiempo (una foto por día) y su red neuronal (tus cerebros y su memoria).
+- **Vigilancias**: lo que vigila por ti (de inicio: resumen diario 8:00 y revisión de bots 21:00) e **informes** con alertas. Corren al abrir la app cuando les toca y el servidor las revisa cada noche.
+- **Bots**: cómo va cada bot (versiones, noches de experimentos, % de ideas que ganan, paper trading y tendencia), análisis con IA y **mejoras propuestas**. Al aprobar una, se guarda como lección en el cerebro del bot para que la pruebe en sus experimentos; la versión final la sigues aprobando tú en VORTEX → Nova Bot Lab.
+- **Memoria**: su perfil «Lo que sabe de ti» y los hechos que recuerda. Puedes contarle algo o hacer que olvide.
+- **Conexiones**: Google Calendar y Gmail (solo lectura), estado de tus apps, avisos, su nombre y cómo quieres que te hable.
+
+Datos: `users/{uid}/brains/_core` (oculto en la lista de cerebros) con `notes` (memoria), `chats`, `msgs`, `watches`, `reports`, `proposals`, `feedback` y `growth`. Las reglas actuales de `firestore.rules` ya lo cubren: no hay que publicar nada.
+
+Por la noche, `scripts/learn.js` llama a `scripts/ai-core-server.js`: actualiza tu perfil, corre las vigilancias pendientes (incluido el resumen), analiza los bots si hubo datos nuevos y guarda la foto del día.
+
+**Google (una sola vez):** en Google Cloud del proyecto `neural-brain-148a4` habilita la [API de Google Calendar](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com?project=neural-brain-148a4) y, si quieres correo, la [API de Gmail](https://console.cloud.google.com/apis/library/gmail.googleapis.com?project=neural-brain-148a4). Si al conectar Google dice «app no verificada», es tu propia app: «Configuración avanzada» → «Ir a Neural Brain».
+
+**Para tus agentes:** un agente se conecta leyendo esta misma memoria y escribiendo sus resultados en `reports` (aparecen en Vigilancias) y sus ideas en `proposals` (aparecen en Bots para que las apruebes).
+
+Archivos: `ai-core-lib.js` (prompts y lógica, compartida con el servidor), `ai-core.js` (la pantalla), `scripts/ai-core-server.js` (la parte nocturna). Pruebas: `node tests/ai-core.test.js && node tests/ai-core-server.test.js`.
+
 ## Cómo se conecta todo
 
 ```

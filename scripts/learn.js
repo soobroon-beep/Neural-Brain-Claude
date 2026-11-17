@@ -7,6 +7,7 @@
    Sin FIREBASE_SERVICE_ACCOUNT no hace nada. Nunca imprime datos de usuarios (los repos son públicos). */
 'use strict';
 const L = require('../brain-learn.js');
+const Core = require('./ai-core-server.js'); // «Mi IA»: perfil, vigilancias, resumen diario, bots y crecimiento
 const DAYS = 75;
 
 async function run() {
@@ -15,11 +16,12 @@ async function run() {
   const admin = require('firebase-admin');
   admin.initializeApp({ credential: admin.credential.cert(JSON.parse(raw)), projectId: process.env.NB_PROJECT || 'neural-brain-148a4' });
   const db = admin.firestore(), force = process.env.FORCE === '1', now = Date.now();
-  const users = await db.collection('users').listDocuments(); let done = 0, skipped = 0, failed = 0;
+  const users = await db.collection('users').listDocuments(); let done = 0, skipped = 0, failed = 0; const core = {users: 0, learned: 0, reports: 0, proposals: 0};
   for (const u of users) {
     const brains = (await u.collection('brains').get()).docs; if (!brains.length) continue;
     const evs = (await u.collection('events').where('at', '>=', now - DAYS * 864e5).orderBy('at', 'desc').limit(2500).get()).docs.map(d => Object.assign({ id: d.id }, d.data()));
     for (const b of brains) {
+      if (b.id === '_core') continue; // Mi IA aprende aparte (abajo)
       const brain = Object.assign({ id: b.id }, b.data()); if (brain.autoLearn === false) { skipped++; continue; }
       const notes = (await b.ref.collection('notes').get()).docs.map(d => d.data());
       const mine = L.brainEvents(brain, evs), since = (brain.learned && brain.learned.at) || 0;
@@ -32,7 +34,10 @@ async function run() {
         done++;
       } catch (e) { failed++; console.warn('Un cerebro no pudo aprender:', String(e.message || e).slice(0, 160)); }
     }
+    try { const r = await Core.runCore(u, {events: evs, force}); if (!r.skipped) { core.users++; core.reports += r.reports; core.proposals += r.proposals; core.learned += r.learned; } }
+    catch (e) { console.warn('Mi IA no pudo correr:', String(e.message || e).slice(0, 160)); }
   }
   console.log(`Aprendizaje: ${done} cerebro(s) actualizados, ${skipped} sin novedades, ${failed} con error.`);
+  console.log(`Mi IA: ${core.users} cuenta(s) · ${core.learned} perfil(es) · ${core.reports} informe(s) · ${core.proposals} propuesta(s) de bots.`);
 }
 run().catch(e => { console.error('Error:', String(e.message || e).slice(0, 300)); process.exit(1); });

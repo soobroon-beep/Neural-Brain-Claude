@@ -137,6 +137,7 @@ body.nr-tour [data-nr-hl]{position:relative;z-index:1;box-shadow:0 0 0 2px rgba(
 - RECUERDOS: llegan solos de sus apps. Un conector en el servidor (GitHub Actions, cada 30 min, aunque todo esté cerrado) compara su cuenta y manda lo nuevo. De Nova Hub: notas, proyectos, tareas (creadas, completadas, borradas), hábitos, recordatorios, eventos y diario. De VORTEX: lista de seguimiento, alertas, ideas Long/Short con sus niveles, indicadores activados, scripts Pine, bots de Nova Bot Lab y sus resultados, operaciones del diario de trading y cada actualización publicada de la app. Con la × el cerebro olvida un recuerdo. No agrega nada a esas apps: solo mira.
 - LO QUE SABE: la IA resume «Lo que sé de ti» (en qué está, cómo trabaja/opera, lo que le funciona, lo que repite y le cuesta, cómo mejorar). Aprende sola cada noche a las 3:20 a. m. si hubo novedades, o con «Aprender ahora». Ahí también va «Cómo quieres que te ayude este cerebro» (instrucciones).
 - PREGUNTAR: chat con un cerebro; responde con lo que sabe, lo que le enseñó y sus recuerdos.
+- MI IA (en el dock): su IA PERSONAL (se llama «Neural» si no la renombra). Usa TODO a la vez: todos los cerebros, todos los recuerdos, su propia memoria, su Google Calendar y Gmail (si los conecta en Mi IA → Conexiones) y sus bots. Pestañas: Chat (conversaciones guardadas; aprende sola lo que él cuenta de sí mismo, se califica con 👍/👎 y propone acciones que él confirma: vigilar, recordar, enseñar a un cerebro, mejora para un bot), Crecimiento (un núcleo de neuronas que se hace más grande mientras más sabe, nivel, etapa, gráficas y su red neuronal), Vigilancias (lo que vigila por él + informes y alertas; trae un resumen diario a las 8:00 y una revisión de bots a las 21:00; corren al abrir la app y el servidor cada noche), Bots (cómo va cada bot de Nova Bot Lab, cuál mejora, análisis con IA y mejoras propuestas que él aprueba o descarta; al aprobar, la idea pasa al cerebro del bot para probarla en sus experimentos), Memoria (su perfil «Lo que sabe de ti» y los hechos que recuerda; se puede contarle algo o hacer que olvide) y Conexiones (Google, apps, avisos, su nombre y cómo quiere que le hable). Tú (Neura) eres la guía de la app; Mi IA es su asistente personal.
 - AJUSTES DEL CEREBRO: nombre, icono, color, de dónde aprende, «Pasárselo a la IA de VORTEX» y «Aprender solo cada noche».
 - CONEXIÓN CON VORTEX: los cerebros con «Pasárselo a la IA de VORTEX» mandan sus reglas maestras, estrategias y lo aprendido a «Analizar gráfico» (agrega la sección «Según tu estrategia») y al «Briefing del día» de VORTEX. Nexus Pixel no lo usa. Llega en la siguiente sincronización (máx. 30 min).
 - AJUSTES GENERALES: cuenta, conexiones (pausar Nova Hub o VORTEX), icono de la app (16 opciones; el principal es el de fondo blanco con las dos nubes morada y lila), Neura (mostrar y consejos), descargar todo el cerebro, versión anterior.
@@ -145,7 +146,7 @@ body.nr-tour [data-nr-hl]{position:relative;z-index:1;box-shadow:0 0 0 2px rgba(
 - Todo se guarda en su cuenta de Google (Firebase). La IA es gratuita.
 - TÚ: Neura, el personaje del icono (dos nubes-cerebro unidas). Ayudas en toda la app.`;
   const ACTIONS = `ACCIONES: si conviene llevarlo a algún lado o hacer algo, escribe al FINAL de tu respuesta una o más marcas (no las expliques):
-{{ir:home}} {{ir:memories}} {{ir:ask}} {{ir:settings}} · {{cerebro:ID:PESTAÑA}} con PESTAÑA = graph|teach|memories|learned|ask|config · {{enseñar}} (abre «Enseñar algo») · {{aprender:ID}} (aprende ahora) · {{tour}} (recorrido guiado).`;
+{{ir:home}} {{ir:memories}} {{ir:ask}} {{ir:ai}} {{ir:settings}} · {{cerebro:ID:PESTAÑA}} con PESTAÑA = graph|teach|memories|learned|ask|config · {{enseñar}} (abre «Enseñar algo») · {{aprender:ID}} (aprende ahora) · {{tour}} (recorrido guiado).`;
   function context() {
     const n = NB(), s = n.snapshot();
     return `AHORA: está en «${s.where}». Usuario: ${s.name || 'Payi'}.
@@ -200,7 +201,7 @@ ${ACTIONS}`;
     } catch { const l = localAnswer(q); Object.assign(tm, {content: l.text, acts: l.acts}); delete tm.typing; mood('', 0); }
     busy = false; saveChat(); paint();
   }
-  const ACT_LABEL = {home: 'Ir a mis cerebros', memories: 'Ver recuerdos', ask: 'Ir a Preguntar', settings: 'Ir a Ajustes'}, TAB_LABEL = {graph: 'Ver su evolución', teach: 'Ver enseñanzas', memories: 'Ver sus recuerdos', learned: 'Ver lo que sabe', ask: 'Preguntarle', config: 'Ajustes del cerebro'};
+  const ACT_LABEL = {home: 'Ir a mis cerebros', memories: 'Ver recuerdos', ask: 'Ir a Preguntar', ai: 'Abrir Mi IA', settings: 'Ir a Ajustes'}, TAB_LABEL = {graph: 'Ver su evolución', teach: 'Ver enseñanzas', memories: 'Ver sus recuerdos', learned: 'Ver lo que sabe', ask: 'Preguntarle', config: 'Ajustes del cerebro'};
   function parseActs(raw) {
     const acts = []; const text = String(raw || '').replace(/\{\{\s*([^}]+?)\s*\}\}/g, (m, a) => {
       const [k, x, y] = a.split(':').map(z => z.trim()); const s = NB().snapshot();
@@ -235,7 +236,7 @@ ${ACTIONS}`;
     {t: 'Recuerdos', go: n => n.go('brain', {tab: 'memories'}), hl: '#tabBody', text: 'Los **Recuerdos** llegan solos de tus apps cada 30 minutos: lo que creas, completas o borras en Nova Hub y lo que haces en VORTEX. Con la **×** el cerebro lo olvida.'},
     {t: 'Lo que sabe', go: n => n.go('brain', {tab: 'learned'}), hl: '.learn', text: 'Con todo eso escribe **«Lo que sé de ti»**: en qué estás, cómo operas, lo que repites y cómo mejorar. Aprende solo cada noche o con **Aprender ahora**. Abajo le dices **cómo quieres que te ayude**.'},
     {t: 'Conexión con VORTEX', go: n => n.go('brain', {tab: 'config'}), hl: '#tabBody', text: 'En los **Ajustes del cerebro** eliges de qué app aprende y si se lo pasa a la **IA de VORTEX**: así «Analizar gráfico» y el «Briefing» usan tus reglas y estrategias.'},
-    {t: 'Preguntar', go: n => n.go('ask'), hl: '.askbar', text: 'Y en **Preguntar** platicas con cualquier cerebro: «¿qué errores repito?», «¿en qué proyectos me disperso?»… Responde con lo que sabe de ti.'},
+    {t: 'Mi IA', go: n => n.go('ai'), hl: '.ai-head', text: 'Y esta es **Mi IA**, tu IA personal: usa **todos** tus cerebros, tus apps, tu agenda de Google y tus bots. Platicas con ella, aprende de ti en cada conversación, **vigila** lo que le pidas, te manda **resúmenes**, analiza tus **bots** y la ves **crecer**.'},
     {t: 'Ajustes', go: n => n.go('settings'), hl: '.appicons', text: 'En **Ajustes** pausas las conexiones, eliges el **icono de la app** y me configuras a mí. ¡Eso es todo! Cuando tengas dudas, tócame.'}
   ];
   function tourStep(i) {
