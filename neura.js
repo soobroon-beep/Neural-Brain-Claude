@@ -195,7 +195,7 @@ ${ACTIONS}`;
     chat.push({role: 'user', content: q}); const tm = {role: 'assistant', typing: true, content: ''}; chat.push(tm); busy = true; paint(); mood('think');
     try {
       const hist = chat.filter(m => !m.typing && !m.step).slice(-9, -1).map(m => ({role: m.role, content: m.content}));
-      const r = await window.BrainLearn.chat([{role: 'system', content: SYS()}, ...hist, {role: 'user', content: q}], {maxTokens: 700, timeout: 60000, temperature: .5});
+      const r = await window.BrainLearn.chat([{role: 'system', content: SYS() + (window.VozLimpia ? VozLimpia.HINT : '')}, ...hist, {role: 'user', content: q}], {maxTokens: 700, timeout: 60000, temperature: .5});
       const {text, acts} = parseActs(r.text); Object.assign(tm, {content: text, acts}); delete tm.typing; mood('talk', 1600);
       autoRun(r.text);
     } catch { const l = localAnswer(q); Object.assign(tm, {content: l.text, acts: l.acts}); delete tm.typing; mood('', 0); }
@@ -275,8 +275,9 @@ ${ACTIONS}`;
   $('#nrMic').addEventListener('click', () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition; if (!SR) { NB().toast('Tu navegador no permite dictar'); return; }
     if (rec) return stopMic(); const el = $('#nrIn'); rec = new SR(); rec.lang = 'es-MX'; rec.interimResults = true; $('#nrMic').classList.add('rec'); mood('look-r');
-    rec.onresult = e => { let t = ''; for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript; el.value = t; };
-    rec.onend = () => { const q = el.value; stopMic(); mood(''); if (q.trim()) { el.value = ''; ask(q); } }; rec.onerror = () => stopMic(); rec.start();
+    const VL = window.VozLimpia; // une el dictado sin duplicar lo que Android repite y quita muletillas y repeticiones
+    rec.onresult = e => { el.value = VL ? VL.fromResults(e.results) : Array.from(e.results).map(r => r[0].transcript).join(''); };
+    rec.onend = () => { const q = VL ? (VL.clean(el.value) || el.value) : el.value; stopMic(); mood(''); if (q.trim()) { el.value = ''; ask(q); } }; rec.onerror = () => stopMic(); rec.start();
   });
 
   /* ───────── Consejos (se asoma de vez en cuando) ───────── */

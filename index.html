@@ -340,6 +340,7 @@ textarea.inp{min-height:110px}
 <section class="sheet" id="sheet" role="dialog" aria-modal="true"></section>
 <div id="toast" role="status"></div>
 
+<script src="voz-limpia.js"></script>
 <script src="brain-learn.js"></script>
 <script src="ai-core-lib.js"></script>
 <script src="graphs.js"></script>
@@ -703,7 +704,7 @@ async function ask(q) {
   U().collection('brains').doc(b.id).collection('chatHistory').doc(um.id).set(um).catch(() => {});
   try {
     const hist = arr.filter(m => !m.typing).slice(-9, -1).map(m => ({role: m.role, content: m.content}));
-    const r = await L.chat([{role: 'system', content: L.askSystem(b, notesOf(b.id), eventsOf(b), q, firstName())}, ...hist, {role: 'user', content: q}], {maxTokens: 1200});
+    const r = await L.chat([{role: 'system', content: L.askSystem(b, notesOf(b.id), eventsOf(b), q, firstName()) + (window.VozLimpia ? VozLimpia.HINT : '')}, ...hist, {role: 'user', content: q}], {maxTokens: 1200});
     Object.assign(tm, {id: uid(), content: r.text, ts: Date.now(), typing: false}); delete tm.typing;
     U().collection('brains').doc(b.id).collection('chatHistory').doc(tm.id).set({id: tm.id, role: 'assistant', content: tm.content, ts: tm.ts}).catch(() => {});
   } catch (e) { Object.assign(tm, {content: '**No pude pensar ahora mismo.** La IA gratuita no respondió; inténtalo en un momento.', typing: false}); delete tm.typing; }
@@ -805,8 +806,9 @@ function mic(btn) {
   if (rec) { stopMic(); return; }
   const el = $('#' + btn.dataset.target); if (!el) return; const base = el.value ? el.value.replace(/\s*$/, ' ') : '';
   rec = new SR(); rec.lang = 'es-MX'; rec.continuous = true; rec.interimResults = true; btn.classList.add('rec');
-  rec.onresult = e => { let t = ''; for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript; el.value = base + t; el.dispatchEvent(new Event('input', {bubbles: true})); };
-  rec.onend = () => stopMic(); rec.onerror = () => stopMic(); rec.start();
+  const VL = window.VozLimpia; let said = ''; // une el dictado sin duplicar lo que Android repite y al final quita muletillas y repeticiones
+  rec.onresult = e => { said = VL ? VL.fromResults(e.results) : Array.from(e.results).map(r => r[0].transcript).join(''); el.value = base + said; el.dispatchEvent(new Event('input', {bubbles: true})); };
+  rec.onend = () => { if (VL && said) { el.value = base + (VL.clean(said) || said); el.dispatchEvent(new Event('input', {bubbles: true})); } stopMic(); }; rec.onerror = () => stopMic(); rec.start();
 }
 
 /* ═══════════ Eventos ═══════════ */
