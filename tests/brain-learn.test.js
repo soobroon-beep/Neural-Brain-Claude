@@ -19,3 +19,12 @@ assert(/SHORT ETHUSDT/.test(sys), 'trae el recuerdo relacionado aunque sea viejo
   assert.deepStrictEqual(seen, ['nova-hub-push.soobroon.workers.dev:openai', 'vortex-push.soobroon.workers.dev:openai', 'gen.pollinations.ai:openai', 'text.pollinations.ai:openai']);
   console.log('brain-learn: OK');
 })();
+// cerebro de tatuaje conectado a InkBot: usa el aprendizaje de contenido
+{
+  const tb = {name: 'Tatuaje', sources: ['inkbot']};
+  const ev = [{app: 'inkbot', act: 'le gustó', type: 'reel', title: 'Revelación al beat', text: 'gancho: De esto a esto', at: 3e12}, {app: 'vortex', act: 'cerró', type: 'operación', title: 'x', at: 3e12}];
+  const mine2 = L.brainEvents(tb, ev); assert.strictEqual(mine2.length, 1);
+  const m2 = L.learnMessages(tb, [], mine2, 'Payi');
+  assert(/cerebro de tatuaje/.test(m2[0].content) && /Le gustó reel: Revelación al beat/.test(m2[1].content) && /InkBot/.test(m2[1].content));
+  console.log('brain-learn inkbot: OK');
+}
