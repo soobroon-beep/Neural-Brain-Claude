@@ -9,7 +9,7 @@
   const VX = 'https://vortex-push.soobroon.workers.dev/ai'; // 2) servidor de VORTEX: su propia cadena Groq → Workers AI → Pollinations
   const APP_ORIGIN = 'https://soobroon-beep.github.io'; // origen permitido (cuando se llama desde el servidor nocturno)
   const FREE_URL = 'https://text.pollinations.ai/openai';
-  const APPS = { novahub: 'Nova Hub', vortex: 'VORTEX', neural: 'Neural Brain' };
+  const APPS = { novahub: 'Nova Hub', vortex: 'VORTEX', neural: 'Neural Brain', inkbot: 'InkBot' };
   const KINDS = { nota: 'Nota', regla: 'Regla', estrategia: 'Estrategia', trader: 'Trader', leccion: 'Lección' };
 
   const clip = (s, n) => { s = String(s == null ? '' : s).trim(); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
@@ -41,7 +41,16 @@
 
   function learnMessages(brain, notes, events, name) {
     const who = name || 'el usuario';
-    const sys = brain.kind === 'bot' ? `Eres el «cerebro» del bot de trading «${(brain.bot && brain.bot.name) || brain.name}» de ${who}. Respondes SIEMPRE en español.
+    const content = (brain.sources || []).includes('inkbot');
+    const sys = content ? `Eres el «cerebro de tatuaje» de ${who}: tatuador profesional que crea contenido para Instagram y TikTok con su app InkBot (historias, reels, diccionario de símbolos). Respondes SIEMPRE en español.
+Tu tarea: leer lo que te enseñó y sus RECUERDOS de InkBot (qué historias y reels creó, qué le GUSTÓ 👍🔥 y qué RECHAZÓ 👎, qué cambios pidió a sus reels, cuántas vistas tuvieron, qué estilos y ganchos usó) y escribir «Lo que sé de ti» para que la IA de InkBot le haga contenido cada vez mejor y más a su gusto.
+REGLAS: solo afirma lo que se desprende de los datos; si algo es suposición, dilo. Nada de relleno. Conserva lo valioso del aprendizaje anterior y corrígelo si los datos nuevos lo contradicen. Usa datos concretos (formatos, ganchos, temas, duraciones, vistas).
+FORMATO (markdown, máximo ~380 palabras, viñetas cortas):
+### Su estilo y su marca
+### Contenido que le funciona (formatos, ganchos, temas, ritmo, voz, duración)
+### Lo que NO le gusta (evitar)
+### Reglas para su próximo contenido (5-8 reglas concretas que la IA de InkBot debe seguir)
+### Ideas para probar` : brain.kind === 'bot' ? `Eres el «cerebro» del bot de trading «${(brain.bot && brain.bot.name) || brain.name}» de ${who}. Respondes SIEMPRE en español.
 Cada noche el servidor prueba ideas para mejorar el bot (consejos del entrenador, ideas tuyas y el optimizador) con velas reales; la que gana FUERA DE MUESTRA sin más caída se aplica sola A PRUEBA en la simulación en vivo, y si ahí rinde peor que la anterior se descarta, vuelve la anterior y ese cambio no se repite (cuenta como «no funcionó»). Tu tarea: leer sus reglas, las versiones del bot, los experimentos y el paper trading, y escribir «Lo que sé de este bot». La próxima noche se usa para decidir qué probar.
 REGLAS: solo afirma lo que dicen los datos; usa números concretos. Nunca sugieras subir riesgo, tamaño ni apalancamiento ni romper sus reglas maestras.
 FORMATO (markdown, máximo ~350 palabras, viñetas cortas):
@@ -78,7 +87,7 @@ FORMATO (markdown, máximo ~380 palabras, viñetas cortas), con estas secciones:
     return out.sort((a, b) => (a.at || 0) - (b.at || 0));
   }
   function askSystem(brain, notes, events, q, name) {
-    return `Eres el cerebro «${brain.name}» de ${name || 'el usuario'}: lo conoces por lo que te enseñó y por lo que hace en sus apps (Nova Hub y VORTEX). Respondes SIEMPRE en español, directo y útil, como alguien que de verdad lo conoce. Si la respuesta no está en tus datos, dilo y responde con tu mejor criterio marcándolo como opinión. En trading: nunca prometas ganancias; habla de escenarios y de SUS reglas.
+    return `Eres el cerebro «${brain.name}» de ${name || 'el usuario'}: lo conoces por lo que te enseñó y por lo que hace en sus apps (${(brain.sources || []).includes('inkbot') ? 'InkBot: su contenido de tatuajes, lo que le gusta y lo que no' : 'Nova Hub y VORTEX'}). Respondes SIEMPRE en español, directo y útil, como alguien que de verdad lo conoce. Si la respuesta no está en tus datos, dilo y responde con tu mejor criterio marcándolo como opinión. En trading: nunca prometas ganancias; habla de escenarios y de SUS reglas.
 ${brain.instructions ? '\nCÓMO QUIERE QUE LO AYUDES:\n' + clip(brain.instructions, 800) + '\n' : ''}
 LO QUE SABES DE ÉL:\n${brain.learned && brain.learned.text ? clip(brain.learned.text, 2500) : '(todavía no has aprendido un resumen; usa lo de abajo)'}
 

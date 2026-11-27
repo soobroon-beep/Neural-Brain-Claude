@@ -56,3 +56,7 @@ Para desconectar todo: quita esas dos cuentas en IAM de `neural-brain-148a4`, o 
 - El conector vive en cada app: `scripts/brain-sync.js` + `.github/workflows/brain-sync.yml`.
 
 Pruebas: `node tests/brain-learn.test.js`
+
+
+## InkBot → cerebro «Tatuaje»
+InkBot escribe sus recuerdos (lo que le gusta y no de su contenido, reels, vistas, cambios pedidos) en `users/{uid}/brains/tatuaje/inkbot/{id}` — permitido por las reglas actuales, sin conector ni llaves nuevas. Un cerebro con la fuente `inkbot` aprende con un formato orientado a crear contenido, y InkBot lee su `learned` para usarlo en toda su IA. `scripts/learn.js` también los lee cada noche.

@@ -117,6 +117,7 @@ main{flex:1;min-width:0;padding:calc(18px + var(--safe-t)) 16px calc(120px + var
 @keyframes pulse{70%{box-shadow:0 0 0 8px rgba(43,212,164,0)}100%{box-shadow:0 0 0 0 rgba(43,212,164,0)}}
 .lg-nh{background:linear-gradient(140deg,#ff9a5a,#e0507a);color:#fff}
 .lg-vx{background:linear-gradient(140deg,#3d6cff,#8d5cff);color:#fff}
+.lg-ib{background:linear-gradient(140deg,#cc0000,#e8b64a);color:#fff}
 .lg-nb{background:linear-gradient(140deg,#6d8dff,#9a7bff);color:#fff}
 
 /* ── Tarjetas de cerebro ── */
@@ -136,7 +137,7 @@ main{flex:1;min-width:0;padding:calc(18px + var(--safe-t)) 16px calc(120px + var
 .chip svg{width:13px;height:13px}
 .chip.on{color:var(--text);background:rgba(255,255,255,.1);border-color:var(--line-2)}
 .chip.tiny{padding:3px 8px;font-size:10.5px}
-.chip.c-nh{color:#ffb38a}.chip.c-vx{color:#9db4ff}
+.chip.c-nh{color:#ffb38a}.chip.c-vx{color:#9db4ff}.chip.c-ib{color:#f2c46d}
 button.chip:active{transform:scale(.94)}
 .newcard{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted);border-style:dashed;min-height:168px}
 .newcard svg{width:26px;height:26px}
@@ -391,11 +392,11 @@ const BRAIN_ICONS = ['brain', 'chart', 'bot', 'ink', 'spark', 'heart', 'book', '
 const COLORS = ['#6d8dff', '#9a7bff', '#2bd4a4', '#f2c46d', '#ff7a8f', '#ff9a5a', '#47c6ff', '#e86bff'];
 const KIND = [['nota', 'Nota'], ['regla', 'Regla'], ['estrategia', 'Estrategia'], ['trader', 'Trader'], ['leccion', 'Lección']];
 const KIND_NAME = Object.fromEntries(KIND);
-const APP = {novahub: {n: 'Nova Hub', s: 'NH', cls: 'lg-nh', chip: 'c-nh'}, vortex: {n: 'VORTEX', s: 'VX', cls: 'lg-vx', chip: 'c-vx'}};
+const APP = {novahub: {n: 'Nova Hub', s: 'NH', cls: 'lg-nh', chip: 'c-nh'}, vortex: {n: 'VORTEX', s: 'VX', cls: 'lg-vx', chip: 'c-vx'}, inkbot: {n: 'InkBot', s: 'IB', cls: 'lg-ib', chip: 'c-ib'}};
 const DEFAULT_BRAINS = [
   {id: 'trading', name: 'Trading', icon: 'chart', color: '#6d8dff', desc: 'Mis reglas, estrategias de los traders que sigo y cómo opero en VORTEX.', sources: ['vortex'], toVortex: true, order: 0},
   {id: 'vida', name: 'Vida y proyectos', icon: 'rocket', color: '#ff9a5a', desc: 'Todo lo que pasa en Nova Hub: notas, proyectos, tareas, hábitos y diario.', sources: ['novahub'], toVortex: false, order: 1},
-  {id: 'tatuaje', name: 'Tatuaje', icon: 'ink', color: '#f2c46d', desc: 'Ideas, estilo, clientes y lo que aprendo del oficio.', sources: [], toVortex: false, order: 2},
+  {id: 'tatuaje', name: 'Tatuaje', icon: 'ink', color: '#f2c46d', desc: 'Ideas, estilo, clientes y lo que aprendo del oficio. Aprende de InkBot: lo que te gusta y lo que no de tu contenido.', sources: ['inkbot'], toVortex: false, order: 2},
   {id: 'ia', name: 'IA y tecnología', icon: 'spark', color: '#2bd4a4', desc: 'Lo que aprendo de IA, apps y herramientas.', sources: [], toVortex: false, order: 3}
 ];
 
@@ -410,7 +411,7 @@ function applyIcon(n, save) {
 }
 
 /* ── Estado ── */
-const S = {user: null, ready: false, brains: [], notes: {}, events: [], evLimit: 600, conn: {novahub: true, vortex: true}, status: {}, chats: {}, chatLoaded: {},
+const S = {user: null, ready: false, brains: [], notes: {}, events: [], ib: {}, evLimit: 600, conn: {novahub: true, vortex: true}, status: {}, chats: {}, chatLoaded: {},
   view: 'home', cur: null, tab: 'graph', f: {kind: 'all', q: '', app: 'all'}, busy: false, open: new Set()};
 let db = null, unsubs = [], noteUnsubs = {};
 
@@ -442,7 +443,8 @@ const isBot = b => !!(b && b.kind === 'bot' && b.bot && b.bot.id);
 const botsSeen = () => { const m = new Map(); for (const e of S.events) if (e.app === 'vortex' && e.type === 'bot' && /^b:/.test(e.ref || '') && !m.has(e.ref)) m.set(e.ref, {id: e.ref.slice(2), name: e.title}); return [...m.values()]; };
 const brain = id => S.brains.find(b => b.id === (id || S.cur)) || S.brains[0];
 const notesOf = id => S.notes[id] || [];
-const eventsOf = b => b ? L.brainEvents(b, S.events) : [];
+const eventsOf = b => b ? L.brainEvents(b, (S.ib && S.ib[b.id] ? S.events.concat(S.ib[b.id]) : S.events)) : [];
+let ibUnsubs = {};
 const loadScript = src => new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('No cargó ' + src)); document.head.appendChild(s); });
 
 /* ═══════════ Firebase ═══════════ */
@@ -457,7 +459,7 @@ async function boot() {
   } catch (e) { S.ready = true; $('#main').innerHTML = `<div class="empty"><b>No pude conectar</b>Revisa tu internet y vuelve a abrir la app.<br><small>${esc(e.message)}</small></div>`; }
 }
 const U = () => db.collection('users').doc(S.user.uid);
-function detach() { unsubs.forEach(f => { try { f(); } catch {} }); unsubs = []; Object.values(noteUnsubs).forEach(f => { try { f(); } catch {} }); noteUnsubs = {}; S.brains = []; S.notes = {}; S.events = []; S.chats = {}; S.chatLoaded = {}; }
+function detach() { Object.values(ibUnsubs).forEach(f => { try { f(); } catch {} }); ibUnsubs = {}; S.ib = {}; unsubs.forEach(f => { try { f(); } catch {} }); unsubs = []; Object.values(noteUnsubs).forEach(f => { try { f(); } catch {} }); noteUnsubs = {}; S.brains = []; S.notes = {}; S.events = []; S.chats = {}; S.chatLoaded = {}; }
 function attach() {
   let seeded = false;
   U().set({email: S.user.email || '', name: S.user.displayName || '', seenAt: Date.now()}, {merge: true}).catch(() => {});
@@ -467,6 +469,8 @@ function attach() {
     if (!docs.length) { if (!seeded && !snap.metadata.fromCache) { seeded = true; await seedBrains(); } return; }
     S.brains = docs.map(d => Object.assign({id: d.id, sources: [], toVortex: false}, d.data())).sort((a, b) => (a.order ?? 99) - (b.order ?? 99) || String(a.name).localeCompare(b.name));
     for (const b of S.brains) if (!noteUnsubs[b.id]) noteUnsubs[b.id] = U().collection('brains').doc(b.id).collection('notes').onSnapshot(s => { S.notes[b.id] = s.docs.map(d => Object.assign({id: d.id}, d.data())); softRender(); }, () => {});
+    // recuerdos de InkBot: viven dentro del propio cerebro (brains/{id}/inkbot)
+    for (const b of S.brains) if ((b.sources || []).includes('inkbot') && !ibUnsubs[b.id]) ibUnsubs[b.id] = U().collection('brains').doc(b.id).collection('inkbot').orderBy('at', 'desc').limit(400).onSnapshot(s => { S.ib[b.id] = s.docs.map(d => Object.assign({id: d.id, app: 'inkbot', _brain: b.id}, d.data())); softRender(); }, () => {});
     for (const id of Object.keys(noteUnsubs)) if (!S.brains.some(b => b.id === id)) { noteUnsubs[id](); delete noteUnsubs[id]; delete S.notes[id]; }
     if (!S.cur || !S.brains.some(b => b.id === S.cur)) S.cur = (S.brains.find(b => b.id === localStorage.getItem('nb3_cur')) || S.brains[0] || {}).id || null;
     migrateLocal(); softRender();
@@ -656,7 +660,7 @@ function learnedTab(b) {
     <span class="hint">${ic('info')}Se guarda solo al salir del cuadro. Lo usa al aprender, al responderte${b.toVortex ? ' y en la IA de VORTEX' : ''}.</span></div>`;
 }
 function configTab(b) {
-  const src = s => `<button class="set" data-act="src" data-src="${s}"><span class="lg ${APP[s].cls}" style="width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-weight:800;font-size:12px">${APP[s].s}</span><span class="bd"><b>Recuerdos de ${APP[s].n}</b><small>${s === 'novahub' ? 'Notas, proyectos, tareas, hábitos, recordatorios y diario.' : 'Seguimiento, alertas, ideas Long/Short, indicadores, scripts, bots y sus resultados, operaciones del diario y actualizaciones de la app.'}</small></span><span class="toggle ${(b.sources || []).includes(s) ? 'on' : ''}"></span></button>`;
+  const src = s => `<button class="set" data-act="src" data-src="${s}"><span class="lg ${APP[s].cls}" style="width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-weight:800;font-size:12px">${APP[s].s}</span><span class="bd"><b>Recuerdos de ${APP[s].n}</b><small>${s === 'inkbot' ? 'Historias y reels que creas, lo que te gusta 👍 y lo que no 👎, los cambios que pides y sus vistas.' : s === 'novahub' ? 'Notas, proyectos, tareas, hábitos, recordatorios y diario.' : 'Seguimiento, alertas, ideas Long/Short, indicadores, scripts, bots y sus resultados, operaciones del diario y actualizaciones de la app.'}</small></span><span class="toggle ${(b.sources || []).includes(s) ? 'on' : ''}"></span></button>`;
   return `<div class="field"><label for="bName">Nombre</label><input class="inp" id="bName" maxlength="40" value="${esc(b.name)}"></div>
     <div class="field"><label for="bDesc">De qué trata</label><input class="inp" id="bDesc" maxlength="140" value="${esc(b.desc || '')}"></div>
     <div class="lbl">Icono</div><div class="icons">${BRAIN_ICONS.map(k => `<button class="${b.icon === k ? 'on' : ''}" data-icon="${k}" aria-label="${k}">${ic(k)}</button>`).join('')}</div>
@@ -664,7 +668,7 @@ function configTab(b) {
     ${isBot(b) ? `<div class="lbl">Bot conectado</div><div class="glass list"><div class="set"><span class="bicon" style="width:38px;height:38px">${ic('bot')}</span><span class="bd"><b>${esc(b.bot.name)}</b><small>Nova Bot Lab · aprende de sus versiones, resultados, experimentos y paper trading.</small></span></div>
       <button class="set" data-act="botAuto"><span class="bd"><b>Mejorarlo solo cada noche</b><small>El servidor prueba ideas (del entrenador, de este cerebro y del optimizador) con velas reales. Si una versión gana fuera de muestra sin más caída y sin romper tus reglas maestras, se aplica sola a prueba en la simulación en vivo; si ahí rinde peor que la anterior, regresa sola y prueba otra variante. Nunca opera con dinero real.</small></span><span class="toggle ${b.bot.auto !== false ? 'on' : ''}"></span></button>
       <button class="set" data-act="botUnlink"><span class="bd"><b>Desconectar el bot</b><small>El cerebro conserva lo que aprendió.</small></span>${ic('x')}</button></div>`
-    : `<div class="lbl">De dónde aprende</div><div class="glass list">${src('novahub')}${src('vortex')}</div>`}
+    : `<div class="lbl">De dónde aprende</div><div class="glass list">${src('novahub')}${src('vortex')}${src('inkbot')}</div>`}
     <div class="lbl">Qué hace con lo que aprende</div><div class="glass list">
       <button class="set" data-act="toVortex"><span class="bd"><b>Pasárselo a la IA de VORTEX</b><small>Sus reglas maestras, estrategias y lo que aprende de ti se usan en «Analizar gráfico» y el «Briefing del día». Nexus Pixel no lo toca.</small></span><span class="toggle ${b.toVortex ? 'on' : ''}"></span></button>
       <button class="set" data-act="autoLearn"><span class="bd"><b>Aprender solo cada noche</b><small>Si hubo recuerdos o enseñanzas nuevas, actualiza «Lo que sabe» a las 3:20 a. m.</small></span><span class="toggle ${b.autoLearn !== false ? 'on' : ''}"></span></button></div>
@@ -850,7 +854,7 @@ document.addEventListener('click', async e => {
     case 'editNote': { const n = notesOf(b.id).find(x => x.id === nid); if (n) teachSheet(n); break; }
     case 'delNote': if (confirm('¿Que este cerebro olvide esta enseñanza?')) U().collection('brains').doc(b.id).collection('notes').doc(nid).delete(); break;
     case 'expandEv': { const ev = t.closest('[data-ev]'), id = ev.dataset.ev; ev.classList.toggle('open'); S.open.has(id) ? S.open.delete(id) : S.open.add(id); break; }
-    case 'forget': { const id = t.closest('[data-ev]').dataset.ev; if (confirm('¿Que tu cerebro olvide este recuerdo?')) U().collection('events').doc(id).delete(); break; }
+    case 'forget': { const id = t.closest('[data-ev]').dataset.ev; if (!confirm('¿Que tu cerebro olvide este recuerdo?')) break; const ibb = Object.keys(S.ib || {}).find(k => S.ib[k].some(e => e.id === id)); (ibb ? U().collection('brains').doc(ibb).collection('inkbot') : U().collection('events')).doc(id).delete(); break; }
     case 'moreEv': S.evLimit += 600; listenEvents(); toast('Cargando más recuerdos…'); break;
     case 'learn': learnNow(); break;
     case 'src': { const s = d.src, cur = new Set(b.sources || []); cur.has(s) ? cur.delete(s) : cur.add(s); saveBrain(b.id, {sources: [...cur]}); break; }

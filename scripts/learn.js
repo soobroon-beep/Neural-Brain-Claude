@@ -24,7 +24,13 @@ async function run() {
       if (b.id === '_core') continue; // Mi IA aprende aparte (abajo)
       const brain = Object.assign({ id: b.id }, b.data()); if (brain.autoLearn === false) { skipped++; continue; }
       const notes = (await b.ref.collection('notes').get()).docs.map(d => d.data());
-      const mine = L.brainEvents(brain, evs), since = (brain.learned && brain.learned.at) || 0;
+      // InkBot escribe sus recuerdos dentro del propio cerebro (brains/{id}/inkbot): no necesita servidor
+      let all = evs;
+      if ((brain.sources || []).includes('inkbot')) {
+        const ib = (await b.ref.collection('inkbot').where('at', '>=', now - DAYS * 864e5).orderBy('at', 'desc').limit(800).get()).docs.map(d => Object.assign({ id: d.id, app: 'inkbot' }, d.data()));
+        all = evs.concat(ib);
+      }
+      const mine = L.brainEvents(brain, all), since = (brain.learned && brain.learned.at) || 0;
       const fresh = mine.some(e => (e.sync || e.at || 0) > since) || notes.some(n => (n.updatedAt || n.createdAt || 0) > since);
       if (!force && !fresh) { skipped++; continue; }
       if (!notes.length && !mine.length) { skipped++; continue; }
